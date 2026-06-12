@@ -642,6 +642,20 @@ td.act{text-align:center;white-space:nowrap;}
         <div class="stat-chip">Épuisé : <strong id="inv-empty">—</strong></div>
       </div>
     </div>
+    <!-- Verrou viewer -->
+    <div id="inv-lock" style="background:var(--parch-dark);border:1px solid var(--border-g);border-top:2px solid var(--green);padding:2rem;max-width:360px;margin:1rem auto;text-align:center;">
+      <div style="font-size:1.5rem;margin-bottom:0.75rem;">🔒</div>
+      <p style="font-family:'Eagle Lake',serif;font-size:0.82rem;color:var(--green-dark);margin-bottom:0.5rem;letter-spacing:0.06em;">Accès restreint</p>
+      <p style="font-size:0.85rem;color:var(--ink-faint);font-style:italic;margin-bottom:1rem;">Cet inventaire est réservé aux membres autorisés de la Châtellerie.</p>
+      <div style="display:flex;gap:0.4rem;">
+        <input id="inv-lock-pass" type="password" placeholder="Mot de passe..." class="login-input" style="flex:1;" onkeydown="if(event.key==='Enter')checkInvPass()">
+        <button class="btn-login" onclick="checkInvPass()">Entrer</button>
+      </div>
+      <p id="inv-lock-err" style="color:#7A1010;font-size:0.78rem;font-style:italic;display:none;margin-top:0.4rem;">Mot de passe incorrect.</p>
+    </div>
+
+    <!-- Contenu inventaire (caché jusqu'au déverrouillage) -->
+    <div id="inv-content" style="display:none;">
     <div id="inv-add-wrap" class="add-form-wrap" style="display:none;">
       <div class="add-form-head" onclick="toggleForm('inv-form')"><span>+ Ajouter un item</span><span class="chev">▼</span></div>
       <div class="add-form-body" id="inv-form">
@@ -664,8 +678,8 @@ td.act{text-align:center;white-space:nowrap;}
       <tbody id="inv-tbody"></tbody></table>
     </div>
   </div>
-
-  <!-- ══ LOIS ══ -->
+    </div>
+  </div> ══ LOIS ══ -->
   <div class="section-page" id="page-lois">
     <div class="sect-header">
       <h2><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBzdHlsZT0iaGVpZ2h0OiA1MTJweDsgd2lkdGg6IDUxMnB4OyI+PHBhdGggZD0iTTAgMGg1MTJ2NTEySDB6IiBmaWxsPSIjYzlhODRjIiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48ZyBjbGFzcz0iIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIiBzdHlsZT0iIj48cGF0aCBkPSJNMjU0LjQ3IDUzLjA5NHMtNC44MDggMzcuMTItNDkuNSA0OS41Yy00NC42OTUgMTIuMzgtMTI5LjI4MiAwLTEyOS4yODIgMEw2MS4zNDMgMTE1Ljc4bDguMTg3IDkuMTU3LTEuMDkzIDIuODc2LTUxLjg0MyAxMzcuMzEyTDE2IDI2Ni43MnYxLjcxN2MwIDE4Ljg5NyA4LjI1MyAzNC4yNDMgMjAuMzQ0IDQ0IDEyLjA5IDkuNzU4IDI3LjU2MyAxNC4zMSA0Mi45MzcgMTQuMzEzIDE1LjM3Ni4wMDMgMzAuODc4LTQuNTU2IDQyLjk3LTE0LjMxMyAxMi4wOTItOS43NTYgMjAuMzQ0LTI1LjA5NCAyMC4zNDQtNDR2LTEuODQzbC0uNjg4LTEuNjg4TDg2Ljk3IDEzMC4yOGMyMy45NDYtMy4wMDMgODAuODY2LTguNTQgMTE1LjUgMS41MzIgMjMuMDY0IDYuNzEgMzYuMTUxIDIwLjM0NSA0My40MzYgMzEuOTdMMjEwLjc4IDM1NC40NjhsMjEuNDA3IDMwLjMxYy0xNy43NSA3Ljc1LTMyLjU5MyAyNC44NC0zNy41NjIgNTEuMzQ1LTU2LjA3NiA2LjE5NS05NS40NyAyMC43NC05NS40NyAzNy42ODhoMzExLjg3NmMwLTE2Ljk0Ny0zOS4zOTItMzEuNDkzLTk1LjQ2Ny0zNy42ODgtNC45MS0yNi42LTE5LjU3LTQ0LjExMi0zNy4xODgtNTEuOTA2bDIxLTI5Ljc1TDI2NCAxNjIuMjhjNy40NTctMTEuMjc1IDIwLjM4OC0yNC4wNDUgNDIuNDctMzAuNDY4IDM0Ljk1NS0xMC4xNjcgOTIuNjE1LTQuNDIgMTE2LjE1NS0xLjQzN2wtNTAuODc1IDEzNC43NS0uNjI1IDEuNTk0djEuNzE3YzAgMTguODk3IDguMjUzIDM0LjI0MyAyMC4zNDQgNDQgMTIuMDkgOS43NTggMjcuNTkzIDE0LjMxIDQyLjk2NyAxNC4zMTMgMTUuMzc1LjAwMyAzMC44NzctNC41NTYgNDIuOTctMTQuMzEzIDEyLjA5LTkuNzU2IDIwLjM0My0yNS4wOTQgMjAuMzQzLTQ0di0xLjg0M2wtLjY4OC0xLjY4OEw0NDEgMTI3LjU2MmwtLjkzOC0yLjI4IDguNzgyLTguNDM4LTE1LjU5NC0xNC4yNXMtODQuNTU2IDEyLjM4LTEyOS4yNSAwLTQ5LjUzLTQ5LjUtNDkuNTMtNDkuNXpNNzcuNTMgMTU2LjY1Nmw0NC4yMiAxMDguMzc1SDM2LjU5NEw3Ny41MyAxNTYuNjU3em0zNTUuMTU4IDAgNDQuMjE4IDEwOC4zNzVIMzkxLjcybDQwLjk2Ny0xMDguMzc0eiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvc3ZnPg==" style="width:20px;height:20px;vertical-align:middle;margin-right:0.4rem;filter:invert(20%) sepia(80%) saturate(3) hue-rotate(10deg) brightness(0.7);"> Législation de Markarth</h2>
@@ -1099,6 +1113,39 @@ async function addLoi(){
 }
 async function delLoi(id){if(!confirm('Abroger cette loi ?'))return;try{await sbDelete('mk_lois',`?id=eq.${id}`);await loadLois();toast('Loi abrogée.');}catch(e){toast('Erreur.');}}
 // ══════════════════════════════════════════════════════════════════════
+//  VERROU INVENTAIRE
+// ══════════════════════════════════════════════════════════════════════
+const INV_PASS = 'inv_mh';
+let invUnlocked = false;
+
+function checkInvPass(){
+  const val = document.getElementById('inv-lock-pass').value;
+  if(val === INV_PASS){
+    invUnlocked = true;
+    document.getElementById('inv-lock').style.display    = 'none';
+    document.getElementById('inv-content').style.display = 'block';
+    document.getElementById('inv-lock-pass').value = '';
+    loadInventaire();
+  } else {
+    document.getElementById('inv-lock-err').style.display = 'block';
+    document.getElementById('inv-lock-pass').value = '';
+    setTimeout(()=>{ document.getElementById('inv-lock-err').style.display='none'; }, 3000);
+  }
+}
+
+function unlockInvForAdmin(){
+  invUnlocked = true;
+  document.getElementById('inv-lock').style.display    = 'none';
+  document.getElementById('inv-content').style.display = 'block';
+}
+
+function lockInv(){
+  invUnlocked = false;
+  document.getElementById('inv-lock').style.display    = 'block';
+  document.getElementById('inv-content').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════════════════════
 //  TRI
 // ══════════════════════════════════════════════════════════════════════
 const GRADE_ORDER=['Capitaine','Lieutenant','Sergent','Caporal','Soldat','Recrue'];
@@ -1150,12 +1197,16 @@ async function doLogin(){
     if(acc.section==='superadmin'){document.getElementById('saBlock').style.display='block';await renderAccountList();
       if(acc.first_login){const m=document.getElementById('sa-pass-msg');m.style.display='block';m.style.color='#7A1010';m.textContent='⚠ Mot de passe par défaut — changez-le.';}}
     updateAdminUI();toast(`Bienvenue, ${user}.`);renderInvHistory();
+    // Déverrouiller l'inventaire automatiquement pour les admins
+    unlockInvForAdmin();
   }catch(e){document.getElementById('loginErr').textContent='Erreur réseau.';document.getElementById('loginErr').style.display='block';}
 }
 function doLogout(){
   session=null;document.getElementById('loginBlock').style.display='block';document.getElementById('sessionBlock').style.display='none';document.getElementById('saBlock').style.display='none';
   document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';document.getElementById('loginErr').style.display='none';updateAdminUI();
-  if(document.getElementById('adminPanel').classList.contains('open'))togglePanel();toast('Déconnexion effectuée.');
+  if(document.getElementById('adminPanel').classList.contains('open'))togglePanel();
+  lockInv();
+  toast('Déconnexion effectuée.');
 }
 function togglePanel(){document.getElementById('adminPanel').classList.toggle('open');document.getElementById('adminToggle').classList.toggle('active');document.querySelector('.content').classList.toggle('panel-open');}
 function isLogged(){return session!==null;}
