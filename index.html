@@ -641,7 +641,7 @@ td.act{text-align:center;white-space:nowrap;}
     <!-- Présentation de la Garde -->
     <div style="border:1px solid var(--border-g);border-top:3px solid var(--brown);padding:1.1rem;background:rgba(226,212,168,0.30);margin-bottom:1.75rem;">
       <div style="font-family:'Eagle Lake',serif;font-size:1rem;color:var(--ink);margin-bottom:0.6rem;letter-spacing:0.05em;">⚔ La Garde de l'Aube</div>
-      <p style="font-size:1.05rem;font-weight:600;font-style:italic;color:var(--ink);line-height:1.8;">L'Ordre suit une chaîne de commandement martiale assez classique en façade : quatre échelons du simple combattant jusqu'à l'Exécuteur confirmé, puis deux échelons de commandement. Deux rôles spécialisés s'y greffent sans suivre cette progression, rattachés directement au Commandeur.</p>
+      <p style="font-size:1.05rem;font-weight:600;font-style:italic;color:var(--ink);line-height:1.8;">L'Ordre suit une chaîne de commandement martiale assez classique en façade : quatre échelons du simple combattant jusqu'à l'Exécuteur confirmé, puis deux échelons de commandement.</p>
     </div>
     <div id="gar-add-wrap" class="add-form-wrap" style="display:none;">
       <div class="add-form-head" onclick="toggleForm('gar-form')"><span>+ Enrôler un nouveau garde</span><span class="chev">▼</span></div>
@@ -1446,7 +1446,7 @@ async function delCitoyen(id){if(!confirm('Radier ce civil ?'))return;try{await 
 async function loadGardes(){
   try{const rows=await sbGet('mk_gardes','?order=nom.asc');renderGardes(rows);}catch(e){console.error(e);}
 }
-const SALAIRES={"Commandeur de l'Aube":500,"Veilleur de l'Aube":400,"Exécuteur de la Garde":320,"Traqueur de la Garde":260,"Patrouilleur de la Garde":200,"Aspirant de la Garde":120,"Artisan de la Garde":240,"Confrère de la Garde":240};
+const SALAIRES={"Commandeur de l'Aube":300,"Veilleur de l'Aube":250,"Exécuteur de la Garde":200,"Traqueur de la Garde":150,"Patrouilleur de la Garde":100,"Aspirant de la Garde":50,"Artisan de la Garde":240,"Confrère de la Garde":240};
 
 function renderGardes(rows){
   gardeRows=rows;
