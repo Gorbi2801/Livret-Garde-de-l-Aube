@@ -787,7 +787,7 @@ td.act{text-align:center;white-space:nowrap;}
           <div class="form-field"><label>Prénom</label><input id="cour-prenom" type="text" placeholder="Prénom..."></div>
           <div class="form-field"><label>Nom</label><input id="cour-nom" type="text" placeholder="Nom..."></div>
           <div class="form-field"><label>Titre</label>
-            <select id="cour-titre"><option value="">— Sélectionner —</option><option>Chancelier de Fort-Aube</option><option>Maître d'Armes de Fort-Aube</option><option>Sénéchal de Fort-Aube</option><option>Émissaire de l'Aube</option><option>Trésorier de l'Ordre</option><option>Maître des Secrets</option><option>Connétable de Fort-Aube</option><option>Précepteur</option></select>
+            <select id="cour-titre"><option value="">— Sélectionner —</option><option>Intendant de Fort-Aube</option><option>Émissaire de l'Aube</option><option>Trésorier de l'Ordre</option><option>Maître des Secrets</option></select>
           </div>
         </div>
         <button class="btn-submit" onclick="addCour()">Nommer</button>
@@ -796,7 +796,7 @@ td.act{text-align:center;white-space:nowrap;}
     <div class="toolbar">
       <div class="search-wrap"><span style="color:var(--ink-faint);font-size:0.85rem;">🔍</span><input id="cour-search" type="text" placeholder="Rechercher un membre..." oninput="filterRows('cour-tbody',this.value)"></div>
       <select class="filter-sel" id="cour-filter-titre" onchange="filterRows('cour-tbody',document.getElementById('cour-search').value)">
-        <option value="">Tous les titres</option><option>Chancelier de Fort-Aube</option><option>Maître d'Armes de Fort-Aube</option><option>Sénéchal de Fort-Aube</option><option>Émissaire de l'Aube</option><option>Trésorier de l'Ordre</option><option>Maître des Secrets</option><option>Connétable de Fort-Aube</option><option>Précepteur</option>
+        <option value="">Tous les titres</option><option>Intendant de Fort-Aube</option><option>Émissaire de l'Aube</option><option>Trésorier de l'Ordre</option><option>Maître des Secrets</option>
       </select>
       <button class="btn-sort asc" id="cour-sort-btn" onclick="sortTable('cour-tbody','name','cour-sort-btn')">Nom</button>
     </div>
@@ -1618,12 +1618,18 @@ async function saveRelation(chatellerie,relation){
 //  COUR DU JARL
 // ══════════════════════════════════════════════════════════════════════
 async function loadCour(){try{const rows=await sbGet('mk_cour','?order=titre.asc');renderCour(rows);}catch(e){console.error(e);}}
+const TITRE_DESC={
+  "Intendant de Fort-Aube":"Intendance générale du fort : vivres, réserves, personnel non-combattant.",
+  "Émissaire de l'Aube":"Relations extérieures, négociations avec les autres châtelleries et factions.",
+  "Trésorier de l'Ordre":"Gestion des fonds, financement des opérations et des primes versées aux Traqueurs.",
+  "Maître des Secrets":"Renseignement, informateurs, surveillance des cibles avant intervention.",
+};
 function renderCour(rows){
   const tbody=document.getElementById('cour-tbody');const canEdit=canEditSection('cour');
   document.getElementById('cour-total').textContent=rows.length;document.getElementById('cour-act-head').style.display=canEdit?'':'none';
   tbody.innerHTML=rows.map(r=>`<tr data-search="${esc((r.prenom+' '+r.nom+' '+r.titre).toLowerCase())}" data-titre="${esc(r.titre||'')}">
     <td class="cell-name">${esc(r.prenom)}${r.nom?" "+esc(r.nom):""}</td>
-    <td class="cell-meta">${r.titre?`<span class="badge badge-tag">${esc(r.titre)}</span>`:'—'}</td>
+    <td class="cell-meta">${r.titre?`<span class="badge badge-tag">${esc(r.titre)}</span>${TITRE_DESC[r.titre]?`<div style="font-size:.72rem;font-style:italic;color:var(--ink-faint);margin-top:.25rem;max-width:280px;">${esc(TITRE_DESC[r.titre])}</div>`:''}`:'—'}</td>
     ${canEdit?`<td class="act"><button class="btn-del" onclick="delCour('${r.id}')">Révoquer</button></td>`:''}</tr>`).join('');
 }
 async function addCour(){
