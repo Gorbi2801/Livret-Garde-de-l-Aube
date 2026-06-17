@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>La Garde de l'Aube — Grimmoire de l'Ordre</title>
+<title>La Garde de l'Aube — Livret de l'Ordre</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Eagle+Lake&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
@@ -112,6 +112,16 @@ tbody td{padding:0.55rem 0.9rem;vertical-align:middle;}
 .cell-name{font-weight:600;font-size:1.05rem;}
 .cell-meta{font-size:1rem;font-weight:600;color:var(--ink);}
 .row-hidden{display:none!important;}
+.diplo-pin{position:absolute;width:16px;height:16px;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;border:2px solid var(--gold-light);box-shadow:0 1px 4px rgba(0,0,0,0.5);transition:transform 0.15s;z-index:5;}
+.diplo-pin:hover{transform:translate(-50%,-50%) scale(1.35);z-index:6;}
+.diplo-pin.alliance{background:#2D6A2D;}
+.diplo-pin.amical{background:#4E7A38;}
+.diplo-pin.neutre{background:#8B6030;}
+.diplo-pin.hostile{background:#8B5E00;}
+.diplo-pin.guerre{background:#7A1010;}
+#diplo-tooltip{position:absolute;display:none;background:var(--green-dark);color:var(--gold-light);font-family:'Eagle Lake',serif;font-size:0.68rem;letter-spacing:0.03em;padding:0.35rem 0.6rem;border:1px solid var(--gold);white-space:nowrap;z-index:20;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.5);transform:translate(-50%,-100%);margin-top:-8px;}
+.relation-card.flash{animation:diploFlash 1s ease;}
+@keyframes diploFlash{0%,100%{box-shadow:none;}50%{box-shadow:0 0 0 3px var(--gold);}}
 .biblio-book{border:1px solid var(--border-g);margin-bottom:1rem;background:rgba(226,212,168,0.12);}
 .biblio-book-head{cursor:pointer;display:flex;align-items:center;gap:0.8rem;padding:0.9rem 1.15rem;}
 .biblio-arr{font-size:0.78rem;color:var(--gold);transition:transform 0.15s;flex-shrink:0;}
@@ -1239,6 +1249,38 @@ const CHATELERIES=[
   {key:'falmer',label:'Falmer',cat:'faction'},
   {key:'cultistes_daedriques',label:'Cultistes daédriques',cat:'faction'},
 ];
+const MAP_PINS=[
+  {key:'breche',left:87.1,top:79.9},
+  {key:'blancherive',left:53.9,top:55.1},
+  {key:'crevasse',left:11.1,top:53.2},
+  {key:'haafingar',left:34.8,top:28.2},
+  {key:'estemarche',left:77.4,top:45.6},
+  {key:'academie',left:72.3,top:27.5},
+  {key:'thalmor',left:30.0,top:24.2},
+];
+function renderDiploPins(rows){
+  const wrap=document.getElementById('diplo-map-wrap');if(!wrap)return;
+  wrap.querySelectorAll('.diplo-pin').forEach(p=>p.remove());
+  let tt=document.getElementById('diplo-tooltip');
+  if(!tt){tt=document.createElement('div');tt.id='diplo-tooltip';wrap.appendChild(tt);}
+  MAP_PINS.forEach(p=>{
+    const c=CHATELERIES.find(x=>x.key===p.key);if(!c)return;
+    const row=rows.find(r=>r.chatellerie===p.key)||{relation:'neutre'};const rel=row.relation||'neutre';
+    const pin=document.createElement('div');
+    pin.className=`diplo-pin ${rel}`;
+    pin.style.left=p.left+'%';pin.style.top=p.top+'%';
+    pin.addEventListener('mouseenter',()=>{
+      tt.textContent=`${c.label} — ${rel.charAt(0).toUpperCase()+rel.slice(1)}`;
+      tt.style.left=p.left+'%';tt.style.top=p.top+'%';tt.style.display='block';
+    });
+    pin.addEventListener('mouseleave',()=>{tt.style.display='none';});
+    pin.addEventListener('click',()=>{
+      const card=document.querySelector(`.relation-card[data-key="${p.key}"]`);
+      if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),1000);}
+    });
+    wrap.appendChild(pin);
+  });
+}
 // ══════════════════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════════════════
@@ -1499,6 +1541,7 @@ function renderDiplomatie(rows){
     `<div class="relation-grid">${chatelleries.map(card).join('')}</div>`+
     `<p style="font-family:'Eagle Lake',serif;font-size:0.72rem;letter-spacing:0.08em;color:var(--green-dark);margin:1.25rem 0 0.5rem;">⚔ AUTRES FACTIONS</p>`+
     `<div class="relation-grid">${factions.map(card).join('')}</div>`;
+  renderDiploPins(rows);
 }
 async function saveRelation(chatellerie,relation){
   try{await sbPatch('mk_diplomatie',`?chatellerie=eq.${chatellerie}`,{relation,updated_at:new Date().toISOString()});const all=await sbGet('mk_diplomatie','');renderDiplomatie(all);toast(`${CHATELERIES.find(c=>c.key===chatellerie)?.label} : ${relation}`);}catch(e){toast('Erreur.');}
