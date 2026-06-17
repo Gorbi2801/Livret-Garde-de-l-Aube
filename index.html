@@ -1186,7 +1186,7 @@ function renderOrganigramme(){
 
   const noms = (grade) => {
     const list = byGrade[grade]||[];
-    if(!list.length) return `<span style="font-style:italic;color:var(--ink-faint);font-size:.78rem;">— Vacant —</span>`;
+    if(!list.length) return `<span style="font-style:italic;color:var(--green-dark);font-size:.78rem;">— Vacant —</span>`;
     return list.map(n=>`<span style="display:block;font-family:'Eagle Lake',serif;font-size:.82rem;color:var(--green-dark);margin-top:.2rem;">${n}</span>`).join('');
   };
 
@@ -1225,7 +1225,7 @@ function renderOrganigramme(){
                   border-top:3px solid ${lv.border};padding:1rem 1.5rem;text-align:center;
                   position:relative;${li>0?'margin-top:1.4rem;':''}">
         <div style="font-family:'Eagle Lake',serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
-                    color:${lv.gold?'var(--gold)':'var(--ink-mid)'};margin-bottom:.65rem;">
+                    color:${lv.gold?'var(--gold)':'var(--green-dark)'};margin-bottom:.65rem;">
           ${lv.label}&nbsp;·&nbsp;<span style="color:${lv.gold?'var(--gold)':'var(--green-dark)'};">${lv.total!==null?used+'/'+lv.total:used}</span>
         </div>
         <div style="display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap;align-items:flex-start;">`;
@@ -1234,8 +1234,8 @@ function renderOrganigramme(){
       if(gi>0) h += `<div style="width:1px;background:var(--border-g);min-height:40px;align-self:stretch;"></div>`;
       h += `
           <div style="min-width:130px;">
-            <div style="font-family:'Eagle Lake',serif;font-size:.88rem;color:var(--ink);margin-bottom:.2rem;">${grade}</div>
-            <div style="font-family:'IM Fell English',serif;font-size:.72rem;font-style:italic;color:var(--ink-faint);margin-bottom:.35rem;">
+            <div style="font-family:'Eagle Lake',serif;font-size:.88rem;color:var(--green-dark);margin-bottom:.2rem;">${grade}</div>
+            <div style="font-family:'IM Fell English',serif;font-size:.72rem;font-style:italic;color:var(--green-dark);margin-bottom:.35rem;">
               ${typeof slots==='number'?slots+' poste'+(slots>1?'s':''):'illimité'}</div>
             <div>${noms(grade)}</div>
           </div>`;
@@ -1258,8 +1258,8 @@ function renderOrganigramme(){
     const used = count(lv.grades.map(g=>g[0]));
     h += `
         <div style="background:${lv.bg};border:1px solid var(--border-g);padding:.65rem;text-align:center;">
-          <div style="font-family:'Eagle Lake',serif;font-size:1.5rem;color:var(--gold);">${used}${lv.total!==null?`<span style="font-size:.9rem;color:var(--ink-faint);">/${lv.total}</span>`:''}</div>
-          <div style="font-family:'Eagle Lake',serif;font-size:.6rem;letter-spacing:.06em;color:var(--ink-mid);text-transform:uppercase;margin-top:.15rem;">${lv.label}</div>
+          <div style="font-family:'Eagle Lake',serif;font-size:1.5rem;color:var(--gold);">${used}${lv.total!==null?`<span style="font-size:.9rem;color:var(--green-dark);">/${lv.total}</span>`:''}</div>
+          <div style="font-family:'Eagle Lake',serif;font-size:.6rem;letter-spacing:.06em;color:var(--green-dark);text-transform:uppercase;margin-top:.15rem;">${lv.label}</div>
         </div>`;
   });
 
