@@ -650,7 +650,7 @@ td.act{text-align:center;white-space:nowrap;}
             <select id="gar-race"><option value="">— Sélectionner —</option><option>Nordique</option><option>Impériale</option><option>Bretonne</option><option>Rougegarde</option><option>Elfe des bois</option><option>Haut-Elfe</option><option>Elfe sombre</option><option>Orque</option><option>Argonien</option><option>Khajiit</option></select>
           </div>
           <div class="form-field"><label>Grade</label>
-            <select id="gar-grade"><option value="">— Sélectionner —</option><option>Commandeur de l'Aube</option><option>Veilleur de l'Aube</option><option>Exécuteur de la Garde</option><option>Traqueur de la Garde</option><option>Patrouilleur de la Garde</option><option>Aspirant de la Garde</option><optgroup label="Spécialité"><option>Artisan de la Garde</option><option>Confrère de la Garde</option><option>Mage de la Garde</option></optgroup></select>
+            <select id="gar-grade"><option value="">— Sélectionner —</option><option>Commandeur de l'Aube</option><option>Veilleur de l'Aube</option><option>Exécuteur de la Garde</option><option>Traqueur de la Garde</option><option>Patrouilleur de la Garde</option><option>Aspirant de la Garde</option><optgroup label="Spécialité"><option>Artisan de la Garde</option><option>Confrère de la Garde</option><option>Mage de la Garde</option><option>Barde de la Garde</option></optgroup></select>
           </div>
           <div class="form-field"><label>Date de recrutement</label>
             <input id="gar-date-recrutement" type="date">
@@ -665,7 +665,7 @@ td.act{text-align:center;white-space:nowrap;}
     <div class="toolbar">
       <div class="search-wrap"><span style="color:var(--ink-faint);font-size:0.85rem;">🔍</span><input id="gar-search" type="text" placeholder="Rechercher un garde..." oninput="filterRows('gar-tbody',this.value)"></div>
       <select class="filter-sel" id="gar-filter-grade" onchange="filterRows('gar-tbody',document.getElementById('gar-search').value)">
-        <option value="">Tous les grades</option><option>Commandeur de l'Aube</option><option>Veilleur de l'Aube</option><option>Exécuteur de la Garde</option><option>Traqueur de la Garde</option><option>Patrouilleur de la Garde</option><option>Aspirant de la Garde</option><optgroup label="Spécialité"><option>Artisan de la Garde</option><option>Confrère de la Garde</option><option>Mage de la Garde</option></optgroup>
+        <option value="">Tous les grades</option><option>Commandeur de l'Aube</option><option>Veilleur de l'Aube</option><option>Exécuteur de la Garde</option><option>Traqueur de la Garde</option><option>Patrouilleur de la Garde</option><option>Aspirant de la Garde</option><optgroup label="Spécialité"><option>Artisan de la Garde</option><option>Confrère de la Garde</option><option>Mage de la Garde</option><option>Barde de la Garde</option></optgroup>
       </select>
       <button class="btn-sort asc" id="gar-sort-btn" onclick="sortTable('gar-tbody','name','gar-sort-btn')">Nom</button>
       <button class="btn-sort asc" id="gar-sort-grade-btn" onclick="sortTable('gar-tbody','grade','gar-sort-grade-btn')">Grade</button>
@@ -1356,30 +1356,28 @@ function renderOrganigramme(){
 
   const total = gardeRows.length;
   const count = (grades) => grades.reduce((s,g)=>(byGrade[g]||[]).length+s,0);
-  const POSTES_ENCADRES = 24;
+  const POSTES_ENCADRES = 30;
 
   // Chaque palier porte sa propre teinte d'accent, du plus clair (commandement)
   // au plus sourd (troupe) — la Spécialité sort de la chaîne et porte une teinte à part.
   const LEVELS = [
     { label:'Commandement',       total:2,  accent:'var(--gold)',       accentLight:'var(--gold-light)', bg:'var(--parch)',
       grades:[["Commandeur de l'Aube",1],["Veilleur de l'Aube",1]] },
-    { label:'Officiers',          total:4,  accent:'#A88E5C',           accentLight:'#C9AF7C', bg:'var(--parch)',
+    { label:'Officiers',          total:4,  accent:'#6B5234',           accentLight:'#D4BD8C', bg:'var(--parch)',
       grades:[['Exécuteur de la Garde',4]] },
-    { label:'Sous-officiers',     total:6,  accent:'#8C7857',           accentLight:'#A8916B', bg:'var(--parch)',
+    { label:'Sous-officiers',     total:6,  accent:'#54402A',           accentLight:'#BCA67C', bg:'var(--parch)',
       grades:[['Traqueur de la Garde',6]] },
-    { label:'Troupe',             total:12, accent:'#6E5E45',           accentLight:'#897860', bg:'var(--parch)',
-      grades:[['Patrouilleur de la Garde',12]] },
-    { label:'Rôles non plafonnés', total:null, accent:'var(--ink-mid)', accentLight:'var(--ink-faint)', bg:'var(--parch)',
-      grades:[['Aspirant de la Garde','—']] },
-    { label:'Spécialité',         total:null, accent:'#7D6B4E',         accentLight:'#9C8A6A', bg:'var(--parch-dark)',
-      grades:[['Artisan de la Garde','—'],['Confrère de la Garde','—'],['Mage de la Garde','—']] },
+    { label:'Troupe',             total:18, accent:'#3D2F1F',           accentLight:'#A8927A', bg:'var(--parch)',
+      grades:[['Patrouilleur de la Garde',null],['Aspirant de la Garde',null]] },
+    { label:'Spécialité',         total:null, accent:'#4A3B28',         accentLight:'#B0A080', bg:'var(--parch-dark)',
+      grades:[['Artisan de la Garde','—'],['Confrère de la Garde','—'],['Mage de la Garde','—'],['Barde de la Garde','—']] },
   ];
 
   let h = `
     <div style="text-align:center;margin-bottom:2rem;">
       <p style="font-family:'Eagle Lake',serif;font-size:1.15rem;color:var(--green-dark);letter-spacing:.1em;">HIÉRARCHIE DE LA GARDE DE L'AUBE</p>
       <p style="font-family:'IM Fell English',serif;font-style:italic;font-size:.88rem;color:var(--ink-mid);margin-top:.3rem;">
-        Effectif actuel : <strong style="color:var(--green-dark);">${total}</strong> membres pour ${POSTES_ENCADRES} postes encadrés (Aspirants et rôles spécialisés illimités à part)
+        Effectif actuel : <strong style="color:var(--green-dark);">${total}</strong> membres pour ${POSTES_ENCADRES} postes encadrés (Patrouilleurs et Aspirants partagent le même quota de Troupe ; rôles spécialisés illimités à part)
       </p>
       <div style="height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:.85rem auto 0;max-width:300px;"></div>
     </div>
@@ -1397,19 +1395,20 @@ function renderOrganigramme(){
           <span style="flex:1;height:1px;background:${lv.accent};opacity:.45;"></span>
           <span style="flex:0 0 auto;font-family:'Eagle Lake',serif;font-size:.78rem;color:${lv.accent};font-weight:700;">${lv.total!==null?used+' / '+lv.total:used}</span>
         </div>
-        <div style="display:flex;gap:.85rem;flex-wrap:wrap;justify-content:${multiCard?'flex-start':'center'};">`;
+        <div style="display:flex;gap:.85rem;flex-wrap:wrap;justify-content:flex-start;">`;
 
     lv.grades.forEach(([grade, slots]) => {
       const list = byGrade[grade]||[];
       const filled = list.length > 0;
+      const badge = slots===null ? '' : `
+            <div style="display:inline-block;font-family:'IM Fell English',serif;font-size:.88rem;font-style:italic;font-weight:600;
+                        color:${lv.accent};background:${lv.accentLight};padding:.22rem .8rem;border-radius:2px;margin-bottom:.6rem;">
+              ${typeof slots==='number'?slots+' poste'+(slots>1?'s':''):'illimité'}</div>`;
       h += `
-          <div style="flex:1 1 200px;max-width:${multiCard?'240px':'320px'};background:${lv.bg};
+          <div style="flex:1 1 200px;max-width:260px;background:${lv.bg};
                       border:1px solid var(--border-g);border-top:3px solid ${filled?lv.accent:'var(--border-g)'};
                       padding:1rem 1.1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);">
-            <div style="font-family:'Eagle Lake',serif;font-size:.98rem;color:var(--green-dark);margin-bottom:.3rem;line-height:1.25;">${grade}</div>
-            <div style="display:inline-block;font-family:'IM Fell English',serif;font-size:.7rem;font-style:italic;
-                        color:${lv.accent};background:${lv.accentLight};padding:.12rem .55rem;border-radius:2px;margin-bottom:.55rem;">
-              ${typeof slots==='number'?slots+' poste'+(slots>1?'s':''):'illimité'}</div>
+            <div style="font-family:'Eagle Lake',serif;font-size:.98rem;color:var(--green-dark);margin-bottom:.3rem;line-height:1.25;">${grade}</div>${badge}
             <div style="border-top:1px solid var(--border-g);padding-top:.5rem;min-height:1.4rem;">${noms(grade)}</div>
           </div>`;
     });
@@ -1627,7 +1626,7 @@ async function delCitoyen(id){if(!confirm('Radier ce civil ?'))return;try{await 
 async function loadGardes(){
   try{const rows=await sbGet('mk_gardes','?order=nom.asc');renderGardes(rows);}catch(e){console.error(e);}
 }
-const SALAIRES={"Commandeur de l'Aube":300,"Veilleur de l'Aube":250,"Exécuteur de la Garde":200,"Traqueur de la Garde":150,"Patrouilleur de la Garde":100,"Aspirant de la Garde":50,"Artisan de la Garde":240,"Confrère de la Garde":240,"Mage de la Garde":240};
+const SALAIRES={"Commandeur de l'Aube":300,"Veilleur de l'Aube":250,"Exécuteur de la Garde":200,"Traqueur de la Garde":150,"Patrouilleur de la Garde":100,"Aspirant de la Garde":50,"Artisan de la Garde":240,"Confrère de la Garde":240,"Mage de la Garde":240,"Barde de la Garde":240};
 
 function renderGardes(rows){
   gardeRows=rows;
@@ -1907,7 +1906,7 @@ async function delLoi(id){if(!confirm('Abroger cette loi ?'))return;try{await sb
 // ══════════════════════════════════════════════════════════════════════
 //  TRI
 // ══════════════════════════════════════════════════════════════════════
-const GRADE_ORDER=["Commandeur de l'Aube","Veilleur de l'Aube","Exécuteur de la Garde","Traqueur de la Garde","Patrouilleur de la Garde","Aspirant de la Garde","Artisan de la Garde","Confrère de la Garde","Mage de la Garde"];
+const GRADE_ORDER=["Commandeur de l'Aube","Veilleur de l'Aube","Exécuteur de la Garde","Traqueur de la Garde","Patrouilleur de la Garde","Aspirant de la Garde","Artisan de la Garde","Confrère de la Garde","Mage de la Garde","Barde de la Garde"];
 const PEINE_ORDER=['Infraction mineure','Infraction majeure','Crime','Crime capital','Haute trahison'];
 function sortTable(tbodyId,mode,btnId){
   const tbody=document.getElementById(tbodyId);const btn=document.getElementById(btnId);if(!tbody||!btn)return;
