@@ -587,7 +587,7 @@ td.act{text-align:center;white-space:nowrap;}
             </div>
           </div>
         </div>
-        <button class="btn-submit" onclick="addCitoyen()">Inscrire au registre</button>
+        <button class="btn-submit" id="cit-submit-btn" onclick="addCitoyen()">Inscrire au registre</button>
       </div>
     </div>
     <div class="toolbar">
@@ -663,7 +663,7 @@ td.act{text-align:center;white-space:nowrap;}
             <input id="gar-recruteur" type="text" placeholder="Nom du recruteur...">
           </div>
         </div>
-        <button class="btn-submit" onclick="addGarde()">Enrôler</button>
+        <button class="btn-submit" id="gar-submit-btn" onclick="addGarde()">Enrôler</button>
       </div>
     </div>
     <div class="toolbar">
@@ -713,7 +713,7 @@ td.act{text-align:center;white-space:nowrap;}
           <div class="form-field"><label>Vendeur / Acheteur (autre partie)</label><input id="com-partie-externe" type="text" placeholder="Commerce, individu, faction..."></div>
           <div class="form-field"><label>Garde ayant traité l'opération</label><input id="com-enregistre-par" type="text" placeholder="Nom..."></div>
         </div>
-        <button class="btn-submit" onclick="addCommerce()">Enregistrer</button>
+        <button class="btn-submit" id="com-submit-btn" onclick="addCommerce()">Enregistrer</button>
       </div>
     </div>
 
@@ -769,7 +769,7 @@ td.act{text-align:center;white-space:nowrap;}
             <select id="cour-titre"><option value="">— Sélectionner —</option><option>Intendant de Fort-Aube</option><option>Émissaire de l'Aube</option><option>Trésorier de l'Ordre</option><option>Maître des Secrets</option></select>
           </div>
         </div>
-        <button class="btn-submit" onclick="addCour()">Nommer</button>
+        <button class="btn-submit" id="cour-submit-btn" onclick="addCour()">Nommer</button>
       </div>
     </div>
     <div class="toolbar">
@@ -798,20 +798,20 @@ td.act{text-align:center;white-space:nowrap;}
     <!-- Contenu inventaire -->
     <div id="inv-content">
     <div id="inv-add-wrap" class="add-form-wrap" style="display:none;">
-      <div class="add-form-head" onclick="toggleForm('inv-form')"><span>+ Ajouter un item</span><span class="chev">▼</span></div>
+      <div class="add-form-head" onclick="toggleForm('inv-form')"><span>+ Ajouter un objet</span><span class="chev">▼</span></div>
       <div class="add-form-body" id="inv-form">
         <div class="form-grid">
-          <div class="form-field"><label>Nom de l'item</label><input id="inv-nom" type="text" placeholder="Nom..."></div>
+          <div class="form-field"><label>Nom de l'objet</label><input id="inv-nom" type="text" placeholder="Nom..."></div>
           <div class="form-field"><label>Catégorie</label>
             <select id="inv-categorie"><option value="">— Sélectionner —</option><option>Équipement</option><option>Potions</option><option>Nourriture</option><option>Ingrédient</option><option>Livres</option><option>Matériaux</option></select>
           </div>
           <div class="form-field"><label>Quantité initiale</label><input id="inv-qty" type="number" min="0" value="0"></div>
         </div>
-        <button class="btn-submit" onclick="addInvItem()">Ajouter au stock</button>
+        <button class="btn-submit" id="inv-submit-btn" onclick="addInvItem()">Ajouter au stock</button>
       </div>
     </div>
     <div class="toolbar">
-      <div class="search-wrap"><span style="color:var(--ink-faint);font-size:1rem;">🔍</span><input id="inv-search" type="text" placeholder="Rechercher un item..." oninput="filterRows('inv-tbody',this.value)"></div>
+      <div class="search-wrap"><span style="color:var(--ink-faint);font-size:1rem;">🔍</span><input id="inv-search" type="text" placeholder="Rechercher un objet..." oninput="filterRows('inv-tbody',this.value)"></div>
       <select class="filter-sel" id="inv-filter-stock" onchange="filterRows('inv-tbody',document.getElementById('inv-search').value)">
         <option value="">Tous les stocks</option><option value="dispo">Disponible</option><option value="vide">Épuisé</option>
       </select>
@@ -821,7 +821,7 @@ td.act{text-align:center;white-space:nowrap;}
       <button class="btn-sort asc" id="inv-sort-btn" onclick="sortTable('inv-tbody','name','inv-sort-btn')">Nom</button>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>Item</th><th>Catégorie</th><th>Quantité</th><th id="inv-act-head" style="display:none;">Actions</th></tr></thead>
+      <table><thead><tr><th>Objet</th><th>Catégorie</th><th>Quantité</th><th id="inv-act-head" style="display:none;">Actions</th></tr></thead>
       <tbody id="inv-tbody"></tbody></table>
     </div>
   </div>
@@ -1341,6 +1341,8 @@ function garSwitchTab(n){
 let gardeRows = [];
 let citoyensRows = [];
 let commercesRows = [];
+let courRows = [];
+let invRows = [];
 
 function renderOrganigramme(){
   const el = document.getElementById('gar-organigramme-content');
@@ -1626,7 +1628,7 @@ function renderCitoyens(rows){
       <td class="cell-meta">${dateObt}</td>
       <td class="cell-meta">${conDetail}</td>
       <td class="cell-meta">${conBadge}</td>
-      ${canEdit?`<td class="act"><button class="btn-del" onclick="openNoteModal('citoyens','${r.id}')">${r.notes?'Note ●':'Note'}</button> <button class="btn-del" onclick="delCitoyen('${r.id}')">Radier</button></td>`:''}
+      ${canEdit?`<td class="act"><button class="btn-del" onclick="editCitoyen('${r.id}')">Modifier</button> <button class="btn-del" onclick="openNoteModal('citoyens','${r.id}')">${r.notes?'Note ●':'Note'}</button> <button class="btn-del" onclick="delCitoyen('${r.id}')">Radier</button></td>`:''}
     </tr>`;
   }).join('');
 }
@@ -1634,6 +1636,24 @@ async function cycleStatut(id,current){
   const next={'Protégé':'Surveillance','Surveillance':'Banni','Banni':'Protégé'}[current]||'Protégé';
   try{await sbPatch('mk_citoyens',`?id=eq.${id}`,{statut_citoyennete:next});await loadCitoyens();toast(`Statut → ${next}.`);}
   catch(e){toast('Erreur.');}
+}
+function editCitoyen(id){
+  const row=citoyensRows.find(r=>r.id===id);if(!row)return;
+  editState={type:'citoyens',id};
+  document.getElementById('cit-prenom').value=row.prenom||'';
+  document.getElementById('cit-nom').value=row.nom||'';
+  document.getElementById('cit-race').value=row.race||'';
+  document.getElementById('cit-metier').value=row.metier||'';
+  document.getElementById('cit-voie').value=row.voie_citoyennete||'';
+  document.getElementById('cit-statut').value=row.statut_citoyennete||'Protégé';
+  document.getElementById('cit-date-obtention').value=row.date_obtention||'';
+  document.getElementById('cit-con-type').value=row.concession_type||'';
+  document.getElementById('cit-con-ressource').value=row.concession_ressource||'';
+  document.getElementById('cit-con-contrepartie').value=row.concession_contrepartie||'';
+  document.getElementById('cit-con-date').value=row.concession_date||'';
+  document.getElementById('cit-con-statut').value=row.concession_statut||'';
+  document.getElementById('cit-submit-btn').textContent='Mettre à jour';
+  openFormById('cit-form');
 }
 async function addCitoyen(){
   const prenom=document.getElementById('cit-prenom').value.trim();
@@ -1649,14 +1669,18 @@ async function addCitoyen(){
   const concession_date=document.getElementById('cit-con-date').value||null;
   const concession_statut=document.getElementById('cit-con-statut').value;
   if(!prenom){toast('Prénom requis.');return;}
+  const payload={prenom,nom,race,metier,voie_citoyennete,statut_citoyennete,date_obtention,concession_type,concession_ressource,concession_contrepartie,concession_date,concession_statut};
   try{
-    await sbPost('mk_citoyens',{prenom,nom,race,metier,voie_citoyennete,statut_citoyennete,date_obtention,concession_type,concession_ressource,concession_contrepartie,concession_date,concession_statut});
+    const isEdit=editState&&editState.type==='citoyens';
+    if(isEdit)await sbPatch('mk_citoyens',`?id=eq.${editState.id}`,payload);
+    else await sbPost('mk_citoyens',payload);
     ['cit-prenom','cit-nom'].forEach(id=>document.getElementById(id).value='');
     ['cit-race','cit-metier','cit-voie','cit-statut'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('cit-date-obtention').value='';
     ['cit-con-ressource','cit-con-contrepartie'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('cit-con-type').value='';document.getElementById('cit-con-date').value='';document.getElementById('cit-con-statut').value='';
-    toggleForm('cit-form');await loadCitoyens();toast(`${prenom}${nom?' '+nom:''} inscrit.`);
+    clearEditState('cit-form');
+    toggleForm('cit-form');await loadCitoyens();toast(`${prenom}${nom?' '+nom:''} ${isEdit?'mis à jour':'inscrit'}.`);
   }catch(e){console.error(e);toast('Erreur.');}
 }
 // ══════════════════════════════════════════════════════════════════════
@@ -1714,9 +1738,21 @@ function renderGardes(rows){
         <span style="display:block;">${dateRecr}</span>
         <span style="color:var(--ink-faint);font-style:italic;font-size:1rem;">par ${recruteur}</span>
       </td>
-      ${canEdit?`<td class="act"><button class="btn-del" onclick="delGarde('${r.id}')">Révoquer</button></td>`:''}
+      ${canEdit?`<td class="act"><button class="btn-del" onclick="editGarde('${r.id}')">Modifier</button> <button class="btn-del" onclick="delGarde('${r.id}')">Révoquer</button></td>`:''}
     </tr>`;
   }).join('');
+}
+function editGarde(id){
+  const row=gardeRows.find(r=>r.id===id);if(!row)return;
+  editState={type:'garde',id};
+  document.getElementById('gar-prenom').value=row.prenom||'';
+  document.getElementById('gar-nom').value=row.nom||'';
+  document.getElementById('gar-race').value=row.race||'';
+  document.getElementById('gar-grade').value=row.grade||'';
+  document.getElementById('gar-date-recrutement').value=row.date_recrutement||'';
+  document.getElementById('gar-recruteur').value=row.recruteur||'';
+  document.getElementById('gar-submit-btn').textContent='Mettre à jour';
+  openFormById('gar-form');
 }
 async function addGarde(){
   const prenom=document.getElementById('gar-prenom').value.trim();
@@ -1727,11 +1763,14 @@ async function addGarde(){
   const recruteur=document.getElementById('gar-recruteur').value.trim()||null;
   if(!prenom){toast('Prénom requis.');return;}
   try{
-    await sbPost('mk_gardes',{prenom,nom,race,grade,date_recrutement,recruteur,salaire_paye:false});
+    const isEdit=editState&&editState.type==='garde';
+    if(isEdit)await sbPatch('mk_gardes',`?id=eq.${editState.id}`,{prenom,nom,race,grade,date_recrutement,recruteur});
+    else await sbPost('mk_gardes',{prenom,nom,race,grade,date_recrutement,recruteur,salaire_paye:false});
     ['gar-prenom','gar-nom','gar-recruteur'].forEach(id=>document.getElementById(id).value='');
     ['gar-race','gar-grade'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('gar-date-recrutement').value='';
-    toggleForm('gar-form');await loadGardes();toast(`${prenom}${nom?' '+nom:''} enrôlé.`);
+    clearEditState('gar-form');
+    toggleForm('gar-form');await loadGardes();toast(`${prenom}${nom?' '+nom:''} ${isEdit?'mis à jour':'enrôlé'}.`);
   }catch(e){toast('Erreur Supabase : '+(e.message||e).slice(0,80));}
 }
 async function delGarde(id){if(!confirm('Révoquer ce garde ?'))return;try{await sbDelete('mk_gardes',`?id=eq.${id}`);await loadGardes();toast('Garde révoqué.');}catch(e){toast('Erreur.');}}
@@ -1762,9 +1801,21 @@ function renderCommerces(rows){
       <td class="cell-meta">${esc(r.valeur||'—')}</td>
       <td class="cell-meta">${esc(r.partie_externe||'—')}</td>
       <td class="cell-meta">${esc(r.enregistre_par||'—')}</td>
-      ${canEdit?`<td class="act"><button class="btn-del" onclick="openNoteModal('commerce','${r.id}')">${r.notes?'Note ●':'Note'}</button> <button class="btn-del" onclick="delCommerce('${r.id}')">Suppr.</button></td>`:''}
+      ${canEdit?`<td class="act"><button class="btn-del" onclick="editCommerce('${r.id}')">Modifier</button> <button class="btn-del" onclick="openNoteModal('commerce','${r.id}')">${r.notes?'Note ●':'Note'}</button> <button class="btn-del" onclick="delCommerce('${r.id}')">Suppr.</button></td>`:''}
     </tr>`;
   }).join('');
+}
+function editCommerce(id){
+  const row=commercesRows.find(r=>r.id===id);if(!row)return;
+  editState={type:'commerce',id};
+  document.getElementById('com-date').value=row.date||'';
+  document.getElementById('com-type').value=row.type||'';
+  document.getElementById('com-objet').value=row.objet||'';
+  document.getElementById('com-valeur').value=row.valeur||'';
+  document.getElementById('com-partie-externe').value=row.partie_externe||'';
+  document.getElementById('com-enregistre-par').value=row.enregistre_par||'';
+  document.getElementById('com-submit-btn').textContent='Mettre à jour';
+  openFormById('com-form');
 }
 async function addCommerce(){
   const date=document.getElementById('com-date').value;
@@ -1775,10 +1826,13 @@ async function addCommerce(){
   const enregistre_par=document.getElementById('com-enregistre-par').value.trim();
   if(!date||!type){toast('Date et type requis.');return;}
   try{
-    await sbPost('mk_transactions',{date,type,objet,valeur,partie_externe,enregistre_par});
+    const isEdit=editState&&editState.type==='commerce';
+    if(isEdit)await sbPatch('mk_transactions',`?id=eq.${editState.id}`,{date,type,objet,valeur,partie_externe,enregistre_par});
+    else await sbPost('mk_transactions',{date,type,objet,valeur,partie_externe,enregistre_par});
     ['com-objet','com-valeur','com-partie-externe','com-enregistre-par'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('com-date').value='';document.getElementById('com-type').value='';
-    toggleForm('com-form');await loadCommerces();toast('Enregistré.');
+    clearEditState('com-form');
+    toggleForm('com-form');await loadCommerces();toast(isEdit?'Mis à jour.':'Enregistré.');
   }catch(e){toast('Erreur.');}
 }
 async function delCommerce(id){if(!confirm('Supprimer cet enregistrement ?'))return;try{await sbDelete('mk_transactions',`?id=eq.${id}`);await loadCommerces();toast('Supprimé.');}catch(e){toast('Erreur.');}}
@@ -1827,17 +1881,34 @@ const TITRE_DESC={
   "Maître des Secrets":"Renseignement, informateurs, surveillance des cibles avant intervention.",
 };
 function renderCour(rows){
+  courRows=rows;
   const tbody=document.getElementById('cour-tbody');const canEdit=canEditSection('cour');
   document.getElementById('cour-total').textContent=rows.length;document.getElementById('cour-act-head').style.display=canEdit?'':'none';
   tbody.innerHTML=rows.map(r=>`<tr data-search="${esc((r.prenom+' '+r.nom+' '+r.titre).toLowerCase())}" data-titre="${esc(r.titre||'')}">
     <td class="cell-name">${esc(r.prenom)}${r.nom?" "+esc(r.nom):""}</td>
     <td class="cell-meta">${r.titre?`<span class="badge badge-tag">${esc(r.titre)}</span>${TITRE_DESC[r.titre]?`<div style="font-size:1rem;font-style:italic;color:var(--ink-faint);margin-top:.25rem;max-width:280px;">${esc(TITRE_DESC[r.titre])}</div>`:''}`:'—'}</td>
-    ${canEdit?`<td class="act"><button class="btn-del" onclick="delCour('${r.id}')">Révoquer</button></td>`:''}</tr>`).join('');
+    ${canEdit?`<td class="act"><button class="btn-del" onclick="editCour('${r.id}')">Modifier</button> <button class="btn-del" onclick="delCour('${r.id}')">Révoquer</button></td>`:''}</tr>`).join('');
+}
+function editCour(id){
+  const row=courRows.find(r=>r.id===id);if(!row)return;
+  editState={type:'cour',id};
+  document.getElementById('cour-prenom').value=row.prenom||'';
+  document.getElementById('cour-nom').value=row.nom||'';
+  document.getElementById('cour-titre').value=row.titre||'';
+  document.getElementById('cour-submit-btn').textContent='Mettre à jour';
+  openFormById('cour-form');
 }
 async function addCour(){
   const prenom=document.getElementById('cour-prenom').value.trim();const nom=document.getElementById('cour-nom').value.trim();const titre=document.getElementById('cour-titre').value;
   if(!prenom||!titre){toast('Prénom et titre requis.');return;}
-  try{await sbPost('mk_cour',{prenom,nom,titre});document.getElementById('cour-prenom').value='';document.getElementById('cour-nom').value='';document.getElementById('cour-titre').value='';toggleForm('cour-form');await loadCour();toast(`${prenom}${nom?' '+nom:''} nommé ${titre}.`);}catch(e){toast('Erreur.');}
+  try{
+    const isEdit=editState&&editState.type==='cour';
+    if(isEdit)await sbPatch('mk_cour',`?id=eq.${editState.id}`,{prenom,nom,titre});
+    else await sbPost('mk_cour',{prenom,nom,titre});
+    document.getElementById('cour-prenom').value='';document.getElementById('cour-nom').value='';document.getElementById('cour-titre').value='';
+    clearEditState('cour-form');
+    toggleForm('cour-form');await loadCour();toast(`${prenom}${nom?' '+nom:''} ${isEdit?'mis à jour':'nommé '+titre}.`);
+  }catch(e){toast('Erreur.');}
 }
 async function delCour(id){if(!confirm('Révoquer ce membre ?'))return;try{await sbDelete('mk_cour',`?id=eq.${id}`);await loadCour();toast('Révoqué.');}catch(e){toast('Erreur.');}}
 // ══════════════════════════════════════════════════════════════════════
@@ -1848,6 +1919,7 @@ function saveInvHistory(h){try{localStorage.setItem('mk_inv_history',JSON.string
 async function loadInventaire(){try{const rows=await sbGet('mk_inventaire','?order=nom.asc');renderInventaire(rows);}catch(e){console.error(e);}}
 const CAT_SLUG={'Équipement':'cat-equip','Potions':'cat-potions','Nourriture':'cat-nourriture','Ingrédient':'cat-ingredient','Livres':'cat-livres','Matériaux':'cat-materiaux'};
 function renderInventaire(rows){
+  invRows=rows;
   const tbody=document.getElementById('inv-tbody');const canAdmin=canEditSection('inventaire');
   const empty=rows.filter(r=>r.quantite<=0).length;
   document.getElementById('inv-total').textContent=rows.length;document.getElementById('inv-empty').textContent=empty;document.getElementById('inv-act-head').style.display=canAdmin?'':'none';
@@ -1855,12 +1927,28 @@ function renderInventaire(rows){
     <td class="cell-name">${esc(r.nom)}</td>
     <td class="cell-meta">${r.categorie?`<span class="badge badge-${CAT_SLUG[r.categorie]||'tag'}">${esc(r.categorie)}</span>`:'—'}</td>
     <td>${canAdmin?`<div style="display:flex;align-items:center;gap:0.5rem;"><button class="btn-del" style="border-color:var(--border-g);color:var(--ink-mid);font-size:1rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="updateQty('${r.id}','${escJs(r.nom)}',${r.quantite},-1)">−</button><input type="number" min="0" value="${r.quantite}" style="width:3.4rem;text-align:center;font-family:'Eagle Lake',serif;font-size:1rem;background:var(--parch);border:1px solid var(--border-g);color:${r.quantite<=0?'#7A1010':'var(--green-dark)'};padding:.15rem 0;" onchange="setQty('${r.id}','${escJs(r.nom)}',${r.quantite},this.value)"><button class="btn-del" style="border-color:var(--border-g);color:var(--ink-mid);font-size:1rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="updateQty('${r.id}','${escJs(r.nom)}',${r.quantite},1)">+</button></div>`:`<span style="font-family:'Eagle Lake',serif;font-size:1rem;color:${r.quantite<=0?'#7A1010':'var(--green-dark)'};">${r.quantite}</span>`}</td>
-    ${canAdmin?`<td class="act"><button class="btn-del" onclick="delInvItem('${r.id}')">Suppr.</button></td>`:''}</tr>`).join('');
+    ${canAdmin?`<td class="act"><button class="btn-del" onclick="editInvItem('${r.id}')">Modifier</button> <button class="btn-del" onclick="delInvItem('${r.id}')">Suppr.</button></td>`:''}</tr>`).join('');
+}
+function editInvItem(id){
+  const row=invRows.find(r=>r.id===id);if(!row)return;
+  editState={type:'inventaire',id};
+  document.getElementById('inv-nom').value=row.nom||'';
+  document.getElementById('inv-categorie').value=row.categorie||'';
+  document.getElementById('inv-qty').value=row.quantite||0;
+  document.getElementById('inv-submit-btn').textContent='Mettre à jour';
+  openFormById('inv-form');
 }
 async function addInvItem(){
   const nom=document.getElementById('inv-nom').value.trim();const categorie=document.getElementById('inv-categorie').value;const quantite=Math.max(0,parseInt(document.getElementById('inv-qty').value)||0);
   if(!nom){toast('Nom requis.');return;}
-  try{await sbPost('mk_inventaire',{nom,categorie,quantite});document.getElementById('inv-nom').value='';document.getElementById('inv-categorie').value='';document.getElementById('inv-qty').value='0';toggleForm('inv-form');await loadInventaire();toast(`${nom} ajouté.`);}catch(e){toast('Erreur.');}
+  try{
+    const isEdit=editState&&editState.type==='inventaire';
+    if(isEdit)await sbPatch('mk_inventaire',`?id=eq.${editState.id}`,{nom,categorie,quantite});
+    else await sbPost('mk_inventaire',{nom,categorie,quantite});
+    document.getElementById('inv-nom').value='';document.getElementById('inv-categorie').value='';document.getElementById('inv-qty').value='0';
+    clearEditState('inv-form');
+    toggleForm('inv-form');await loadInventaire();toast(`${nom} ${isEdit?'mis à jour':'ajouté'}.`);
+  }catch(e){toast('Erreur.');}
 }
 async function applyQty(id,nom,current,newQty){
   newQty=Math.max(0,newQty);if(newQty===current)return;
@@ -2093,7 +2181,29 @@ function switchSection(sec,btn){
   document.getElementById('page-'+sec).classList.add('active');btn.classList.add('active');activeSection=sec;
 }
 function togglePanel(){document.getElementById('adminPanel').classList.toggle('open');document.getElementById('adminToggle').classList.toggle('active');document.querySelector('.content').classList.toggle('panel-open');}
-function toggleForm(id){const head=document.querySelector(`[onclick="toggleForm('${id}')"]`);const body=document.getElementById(id);if(head)head.classList.toggle('open');if(body)body.classList.toggle('open');}
+// ══════════════════════════════════════════════════════════════════════
+//  ÉDITION D'ENTRÉES EXISTANTES (formulaires d'ajout réutilisés)
+// ══════════════════════════════════════════════════════════════════════
+let editState=null; // {type:'citoyens'|'garde'|'commerce'|'cour'|'inventaire', id}
+const EDIT_FORM_TYPE={'cit-form':'citoyens','gar-form':'garde','com-form':'commerce','cour-form':'cour','inv-form':'inventaire'};
+const EDIT_SUBMIT_BTN={citoyens:'cit-submit-btn',garde:'gar-submit-btn',commerce:'com-submit-btn',cour:'cour-submit-btn',inventaire:'inv-submit-btn'};
+const EDIT_SUBMIT_DEFAULT={'cit-submit-btn':'Inscrire au registre','gar-submit-btn':'Enrôler','com-submit-btn':'Enregistrer','cour-submit-btn':'Nommer','inv-submit-btn':'Ajouter au stock'};
+function openFormById(id){
+  const head=document.querySelector(`[onclick="toggleForm('${id}')"]`);
+  const body=document.getElementById(id);
+  if(head)head.classList.add('open');
+  if(body)body.classList.add('open');
+}
+function clearEditState(formId){
+  const type=EDIT_FORM_TYPE[formId];
+  if(type && editState && editState.type===type){
+    editState=null;
+    const btnId=EDIT_SUBMIT_BTN[type];
+    const btn=document.getElementById(btnId);
+    if(btn)btn.textContent=EDIT_SUBMIT_DEFAULT[btnId];
+  }
+}
+function toggleForm(id){const head=document.querySelector(`[onclick="toggleForm('${id}')"]`);const body=document.getElementById(id);if(head)head.classList.toggle('open');if(body)body.classList.toggle('open');clearEditState(id);}
 function showMsg(el,type,txt){el.style.display='block';el.style.color=type==='ok'?'var(--s-ok)':'#7A1010';el.textContent=txt;setTimeout(()=>{el.style.display='none';},4000);}
 function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),3100);}
 
@@ -2142,7 +2252,7 @@ async function exportSection(){
     else if(activeSection==='garde'){const r=await sbGet('mk_gardes','?order=nom.asc');csv='Prénom,Nom,Race,Grade\n'+r.map(x=>`"${x.prenom}","${x.nom}","${x.race||''}","${x.grade||''}"`).join('\n');filename='garde_aube.csv';}
     else if(activeSection==='commerces'){const r=await sbGet('mk_transactions','?order=date.desc');csv='Date,Type,Objet,Prix,Vendeur/Acheteur,Garde\n'+r.map(x=>`"${x.date||''}","${x.type||''}","${(x.objet||'').replace(/"/g,"'")}","${(x.valeur||'').replace(/"/g,"'")}","${(x.partie_externe||'').replace(/"/g,"'")}","${(x.enregistre_par||'').replace(/"/g,"'")}"`).join('\n');filename='transactions_aube.csv';}
     else if(activeSection==='cour'){const r=await sbGet('mk_cour','?order=titre.asc');csv='Prénom,Nom,Titre\n'+r.map(x=>`"${x.prenom}","${x.nom}","${x.titre||''}"`).join('\n');filename='cour_aube.csv';}
-    else if(activeSection==='inventaire'){const r=await sbGet('mk_inventaire','?order=nom.asc');csv='Item,Catégorie,Quantité\n'+r.map(x=>`"${x.nom}","${x.categorie||''}",${x.quantite}`).join('\n');filename='inventaire_aube.csv';}
+    else if(activeSection==='inventaire'){const r=await sbGet('mk_inventaire','?order=nom.asc');csv='Objet,Catégorie,Quantité\n'+r.map(x=>`"${x.nom}","${x.categorie||''}",${x.quantite}`).join('\n');filename='inventaire_aube.csv';}
     else if(activeSection==='lois'){const r=await sbGet('mk_lois','?order=created_at.asc');csv='Titre,Peine,Sanction,Description\n'+r.map(x=>`"${x.titre}","${x.peine||''}","${x.sanction||''}","${(x.description||'').replace(/"/g,"'")}"`).join('\n');filename='reglement_aube.csv';}
     else{toast('Export non disponible pour cette section.');return;}
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));a.download=filename;a.click();
