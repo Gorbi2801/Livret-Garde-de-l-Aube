@@ -1838,7 +1838,7 @@ function renderInventaire(rows){
   tbody.innerHTML=rows.map(r=>`<tr data-search="${esc(r.nom.toLowerCase())}" data-stock="${r.quantite<=0?'vide':'dispo'}" data-cat="${esc(r.categorie||'')}">
     <td class="cell-name">${esc(r.nom)}</td>
     <td class="cell-meta">${r.categorie?`<span class="badge badge-${CAT_SLUG[r.categorie]||'tag'}">${esc(r.categorie)}</span>`:'—'}</td>
-    <td>${canAdmin?`<div style="display:flex;align-items:center;gap:0.5rem;"><button class="btn-del" style="border-color:var(--border-g);color:var(--ink-mid);font-size:1rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="updateQty('${r.id}','${esc(r.nom)}',${r.quantite},-1)">−</button><input type="number" min="0" value="${r.quantite}" style="width:3.4rem;text-align:center;font-family:'Eagle Lake',serif;font-size:1rem;background:var(--parch);border:1px solid var(--border-g);color:${r.quantite<=0?'#7A1010':'var(--green-dark)'};padding:.15rem 0;" onchange="setQty('${r.id}','${esc(r.nom)}',${r.quantite},this.value)"><button class="btn-del" style="border-color:var(--border-g);color:var(--ink-mid);font-size:1rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="updateQty('${r.id}','${esc(r.nom)}',${r.quantite},1)">+</button></div>`:`<span style="font-family:'Eagle Lake',serif;font-size:1rem;color:${r.quantite<=0?'#7A1010':'var(--green-dark)'};">${r.quantite}</span>`}</td>
+    <td>${canAdmin?`<div style="display:flex;align-items:center;gap:0.5rem;"><button class="btn-del" style="border-color:var(--border-g);color:var(--ink-mid);font-size:1rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="updateQty('${r.id}','${escJs(r.nom)}',${r.quantite},-1)">−</button><input type="number" min="0" value="${r.quantite}" style="width:3.4rem;text-align:center;font-family:'Eagle Lake',serif;font-size:1rem;background:var(--parch);border:1px solid var(--border-g);color:${r.quantite<=0?'#7A1010':'var(--green-dark)'};padding:.15rem 0;" onchange="setQty('${r.id}','${escJs(r.nom)}',${r.quantite},this.value)"><button class="btn-del" style="border-color:var(--border-g);color:var(--ink-mid);font-size:1rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="updateQty('${r.id}','${escJs(r.nom)}',${r.quantite},1)">+</button></div>`:`<span style="font-family:'Eagle Lake',serif;font-size:1rem;color:${r.quantite<=0?'#7A1010':'var(--green-dark)'};">${r.quantite}</span>`}</td>
     ${canAdmin?`<td class="act"><button class="btn-del" onclick="delInvItem('${r.id}')">Suppr.</button></td>`:''}</tr>`).join('');
 }
 async function addInvItem(){
@@ -2049,8 +2049,8 @@ async function renderAccountList(){
             <span class="admin-entry-section">${sectionLabel(r.section)}</span>
           </div>
           <div style="display:flex;gap:.35rem;">
-            <button class="btn-del" style="background:transparent;border:1px solid var(--border-g);color:var(--ink-mid);font-size:1rem;" onclick="toggleEditAccess('edit-${esc(r.username)}')">Modifier</button>
-            <button class="btn-del" onclick="deleteAccount('${esc(r.username)}')">Suppr.</button>
+            <button class="btn-del" style="background:transparent;border:1px solid var(--border-g);color:var(--ink-mid);font-size:1rem;" onclick="toggleEditAccess('edit-${escJs(r.username)}')">Modifier</button>
+            <button class="btn-del" onclick="deleteAccount('${escJs(r.username)}')">Suppr.</button>
           </div>
         </div>
         <div id="edit-${esc(r.username)}" style="display:none;border-top:1px solid var(--border-g);padding-top:.4rem;">
@@ -2062,7 +2062,7 @@ async function renderAccountList(){
               </label>`
             ).join('')}
           </div>
-          <button class="btn-login" style="font-size:1rem;padding:.3rem .8rem;" onclick="saveAccess('${esc(r.username)}')">Sauvegarder les accès</button>
+          <button class="btn-login" style="font-size:1rem;padding:.3rem .8rem;" onclick="saveAccess('${escJs(r.username)}')">Sauvegarder les accès</button>
           <p id="msg-${esc(r.username)}" class="msg" style="margin-top:.2rem;"></p>
         </div>
       </div>`).join('');
@@ -2081,6 +2081,7 @@ function toggleForm(id){const head=document.querySelector(`[onclick="toggleForm(
 function showMsg(el,type,txt){el.style.display='block';el.style.color=type==='ok'?'var(--s-ok)':'#7A1010';el.textContent=txt;setTimeout(()=>{el.style.display='none';},4000);}
 function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),3100);}
 function esc(str){if(!str)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escJs(str){if(!str)return'';return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 // ══════════════════════════════════════════════════════════════════════
 //  EXPORT
 // ══════════════════════════════════════════════════════════════════════
