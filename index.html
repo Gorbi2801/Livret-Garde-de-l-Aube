@@ -1635,16 +1635,15 @@ async function addCitoyen(){
   const concession_statut=document.getElementById('cit-con-statut').value;
   if(!prenom){toast('Prénom requis.');return;}
   try{
-    await sbPost('mk_citoyens',{prenom,nom,race,metier,voie_citoyennete,statut_citoyennete,date_obtention,taxe_payee:false,concession_type,concession_ressource,concession_contrepartie,concession_date,concession_statut});
+    await sbPost('mk_citoyens',{prenom,nom,race,metier,voie_citoyennete,statut_citoyennete,date_obtention,concession_type,concession_ressource,concession_contrepartie,concession_date,concession_statut});
     ['cit-prenom','cit-nom'].forEach(id=>document.getElementById(id).value='');
     ['cit-race','cit-metier','cit-voie','cit-statut'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('cit-date-obtention').value='';
     ['cit-con-ressource','cit-con-contrepartie'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('cit-con-type').value='';document.getElementById('cit-con-date').value='';document.getElementById('cit-con-statut').value='';
     toggleForm('cit-form');await loadCitoyens();toast(`${prenom}${nom?' '+nom:''} inscrit.`);
-  }catch(e){toast('Erreur.');}
+  }catch(e){console.error(e);toast('Erreur.');}
 }
-async function delCitoyen(id){if(!confirm('Radier ce civil ?'))return;try{await sbDelete('mk_citoyens',`?id=eq.${id}`);await loadCitoyens();toast('Radié du registre.');}catch(e){toast('Erreur.');}}
 // ══════════════════════════════════════════════════════════════════════
 //  GARDES
 // ══════════════════════════════════════════════════════════════════════
