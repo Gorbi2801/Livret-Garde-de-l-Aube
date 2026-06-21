@@ -71,9 +71,9 @@ header{background:linear-gradient(180deg,var(--green-dark) 0%,var(--green) 100%)
 .admin-panel{width:370px;background:rgba(232,216,168,0.70);border-left:2px solid var(--green);padding:1.5rem;overflow-y:auto;overscroll-behavior:contain;display:none;flex-direction:column;gap:1.1rem;position:fixed;top:128px;right:0;bottom:0;z-index:100;box-shadow:-4px 0 16px rgba(42,64,32,0.2);}
 .admin-panel.open{display:flex;}
 .panel-title{font-family:'Eagle Lake',serif;font-size:1rem;letter-spacing:0.12em;color:var(--green-dark);border-bottom:1px solid var(--border-g);padding-bottom:0.45rem;margin-bottom:0.6rem;}
-.session-bar{background:var(--green-dark);padding:0.5rem 0.8rem;display:flex;align-items:center;justify-content:space-between;}
-.session-name{font-family:'Eagle Lake',serif;font-size:1rem;color:var(--gold-light);letter-spacing:0.06em;}
-.btn-logout{background:none;border:1px solid rgba(232,213,163,0.3);color:var(--gold-light);font-family:'Eagle Lake',serif;font-size:1rem;padding:0.2rem 0.55rem;cursor:pointer;}
+.session-bar{background:var(--green-dark);padding:0.5rem 0.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem 0.6rem;}
+.session-name{font-family:'Eagle Lake',serif;font-size:1rem;color:var(--gold-light);letter-spacing:0.06em;flex:1 1 auto;min-width:0;word-break:break-word;}
+.btn-logout{background:none;border:1px solid rgba(232,213,163,0.3);color:var(--gold-light);font-family:'Eagle Lake',serif;font-size:1rem;padding:0.2rem 0.55rem;cursor:pointer;flex:0 0 auto;}
 
 /* ── LOGIN ── */
 .login-box{background:rgba(240,230,200,0.58);border:1px solid var(--border-g);padding:1.1rem;}
