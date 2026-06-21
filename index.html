@@ -607,7 +607,7 @@ td.act{text-align:center;white-space:nowrap;}
       <button class="btn-sort asc" id="cit-sort-btn" onclick="sortTable('cit-tbody','name','cit-sort-btn')">Nom</button>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>Prénom &amp; Nom</th><th>Race</th><th>Métier</th><th>Voie</th><th>Statut</th><th>Admission</th><th>Concession</th><th>Statut concession</th><th id="cit-act-head" style="display:none;">Actions</th></tr></thead>
+      <table><thead><tr><th>Prénom &amp; Nom</th><th>Race</th><th>Métier</th><th>Voie</th><th>Statut</th><th>Admission</th><th>Concession</th><th>Statut concession</th><th>Note</th><th id="cit-act-head" style="display:none;">Actions</th></tr></thead>
       <tbody id="cit-tbody"></tbody></table>
     </div>
   </div>
@@ -805,6 +805,21 @@ td.act{text-align:center;white-space:nowrap;}
     </div>
     <!-- Contenu inventaire -->
     <div id="inv-content">
+    <!-- ══ ORDRES DE FABRICATION ══ -->
+    <div id="ordre-fab-wrap" style="display:none;margin-bottom:1.5rem;">
+      <div style="font-family:'Eagle Lake',serif;font-size:1.05rem;color:var(--green-dark);letter-spacing:0.04em;margin-bottom:0.6rem;">⚒ Ordres de Fabrication</div>
+      <div class="add-form-wrap" style="display:block;">
+        <div class="add-form-head" onclick="toggleForm('ordre-fab-form')"><span>+ Lancer un ordre de fabrication</span><span class="chev">▼</span></div>
+        <div class="add-form-body" id="ordre-fab-form">
+          <div class="form-grid">
+            <div class="form-field"><label>Objet à produire</label><input id="ordre-fab-objet" type="text" placeholder="Ex: Flèches d'argent..."></div>
+            <div class="form-field"><label>Objectif (quantité visée)</label><input id="ordre-fab-objectif" type="number" min="1" value="10"></div>
+          </div>
+          <button class="btn-submit" id="ordre-fab-submit-btn" onclick="addOrdreFab()">Lancer l'ordre</button>
+        </div>
+      </div>
+      <div id="ordres-fab-list" style="display:flex;flex-direction:column;gap:0.6rem;margin-top:0.8rem;"></div>
+    </div>
     <div id="inv-add-wrap" class="add-form-wrap" style="display:none;">
       <div class="add-form-head" onclick="toggleForm('inv-form')"><span>+ Ajouter un objet</span><span class="chev">▼</span></div>
       <div class="add-form-body" id="inv-form">
@@ -1636,7 +1651,8 @@ function renderCitoyens(rows){
       <td class="cell-meta">${dateObt}</td>
       <td class="cell-meta">${conDetail}</td>
       <td class="cell-meta">${conBadge}</td>
-      ${canEdit?`<td class="act"><button class="btn-del" onclick="editCitoyen('${r.id}')">Modifier</button> <button class="btn-del" onclick="openNoteModal('citoyens','${r.id}')">${r.notes?'Note ●':'Note'}</button> <button class="btn-del" onclick="delCitoyen('${r.id}')">Radier</button></td>`:''}
+      <td class="cell-meta"><button class="btn-del" onclick="openNoteModal('citoyens','${r.id}')">${r.notes?'Note ●':'Note'}</button></td>
+      ${canEdit?`<td class="act"><button class="btn-del" onclick="editCitoyen('${r.id}')">Modifier</button> <button class="btn-del" onclick="delCitoyen('${r.id}')">Radier</button></td>`:''}
     </tr>`;
   }).join('');
 }
@@ -1757,6 +1773,16 @@ function renderGardes(rows){
       ${canEdit?`<td class="act"><button class="btn-del" onclick="editGarde('${r.id}')">Modifier</button> <button class="btn-del" onclick="delGarde('${r.id}')">Révoquer</button></td>`:''}
     </tr>`;
   }).join('');
+  // Tri par défaut : par grade, selon la hiérarchie de l'Ordre
+  const sortedRows=Array.from(tbody.querySelectorAll('tr'));
+  sortedRows.sort((a,b)=>{
+    const ga=(a.getAttribute('data-grade')||'').trim();
+    const gb=(b.getAttribute('data-grade')||'').trim();
+    const ia=GRADE_ORDER.indexOf(ga)===-1?99:GRADE_ORDER.indexOf(ga);
+    const ib=GRADE_ORDER.indexOf(gb)===-1?99:GRADE_ORDER.indexOf(gb);
+    return ia-ib;
+  });
+  sortedRows.forEach(tr=>tbody.appendChild(tr));
 }
 function editGarde(id){
   const row=gardeRows.find(r=>r.id===id);if(!row)return;
@@ -1939,6 +1965,56 @@ async function delCour(id){if(!confirm('Révoquer ce membre ?'))return;try{await
 // ══════════════════════════════════════════════════════════════════════
 function loadInvHistory(){try{return JSON.parse(localStorage.getItem('mk_inv_history')||'[]');}catch(e){return[];}}
 function saveInvHistory(h){try{localStorage.setItem('mk_inv_history',JSON.stringify(h.slice(0,200)));}catch(e){}}
+// ══════════════════════════════════════════════════════════════════════
+//  ORDRES DE FABRICATION
+// ══════════════════════════════════════════════════════════════════════
+let ordresFabRows=[];
+async function loadOrdresFab(){
+  try{const rows=await sbGet('mk_ordres_fabrication','?order=created_at.asc');renderOrdresFab(rows);}catch(e){console.error(e);}
+}
+function renderOrdresFab(rows){
+  ordresFabRows=rows;
+  const list=document.getElementById('ordres-fab-list');if(!list)return;
+  list.innerHTML=rows.map(r=>{
+    const current=r.avancement||0;
+    const objectif=r.objectif||0;
+    const pct=objectif>0?Math.min(100,Math.round(current/objectif*100)):0;
+    const done=objectif>0&&current>=objectif;
+    return `<div style="background:var(--parch);border:1px solid var(--border-g);border-left:4px solid ${done?'#2D6A2D':'var(--gold)'};padding:0.7rem 1rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+        <span style="font-family:'Eagle Lake',serif;font-size:1rem;color:var(--green-dark);">${esc(r.objet)}${done?' ✅':''}</span>
+        <button class="btn-del" onclick="delOrdreFab('${r.id}')">Suppr.</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+        <button class="btn-del" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="incrementOrdreFab('${r.id}',${current},-1)">−</button>
+        <input type="number" min="0" value="${current}" style="width:4rem;text-align:center;font-family:'Eagle Lake',serif;font-size:1rem;background:var(--parch-dark);border:1px solid var(--border-g);color:var(--green-dark);padding:.15rem 0;" onchange="setOrdreFabAvancement('${r.id}',${current},this.value)">
+        <button class="btn-del" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;" onclick="incrementOrdreFab('${r.id}',${current},1)">+</button>
+        <span style="font-family:'IM Fell English',serif;font-size:1rem;color:var(--ink-mid);white-space:nowrap;">/ ${objectif}</span>
+        <div style="flex:1;min-width:80px;height:8px;background:var(--parch-dark);border:1px solid var(--border-g);overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${done?'#2D6A2D':'var(--gold)'};"></div>
+        </div>
+        <span style="font-family:'IM Fell English',serif;font-size:1rem;color:var(--ink-faint);white-space:nowrap;">${pct}%</span>
+      </div>
+    </div>`;
+  }).join('') || `<p style="font-family:'IM Fell English',serif;font-style:italic;color:var(--ink-faint);font-size:1rem;padding:0.5rem 0.2rem;">Aucun ordre de fabrication en cours.</p>`;
+}
+async function addOrdreFab(){
+  const objet=document.getElementById('ordre-fab-objet').value.trim();
+  const objectif=Math.max(1,parseInt(document.getElementById('ordre-fab-objectif').value)||1);
+  if(!objet){toast('Objet requis.');return;}
+  try{
+    await sbPost('mk_ordres_fabrication',{objet,objectif,avancement:0});
+    document.getElementById('ordre-fab-objet').value='';document.getElementById('ordre-fab-objectif').value='10';
+    toggleForm('ordre-fab-form');await loadOrdresFab();toast(`Ordre de fabrication lancé : ${objet}.`);
+  }catch(e){toast('Erreur.');}
+}
+async function applyOrdreFabAvancement(id,current,newVal){
+  newVal=Math.max(0,newVal);if(newVal===current)return;
+  try{await sbPatch('mk_ordres_fabrication',`?id=eq.${id}`,{avancement:newVal});await loadOrdresFab();}catch(e){toast('Erreur.');}
+}
+async function incrementOrdreFab(id,current,delta){await applyOrdreFabAvancement(id,current,current+delta);}
+async function setOrdreFabAvancement(id,current,newValRaw){await applyOrdreFabAvancement(id,current,parseInt(newValRaw)||0);}
+async function delOrdreFab(id){if(!confirm('Supprimer cet ordre de fabrication ?'))return;try{await sbDelete('mk_ordres_fabrication',`?id=eq.${id}`);await loadOrdresFab();toast('Ordre supprimé.');}catch(e){toast('Erreur.');}}
 async function loadInventaire(){try{const rows=await sbGet('mk_inventaire','?order=nom.asc');renderInventaire(rows);}catch(e){console.error(e);}}
 const CAT_SLUG={'Équipement':'cat-equip','Potions':'cat-potions','Nourriture':'cat-nourriture','Ingrédient':'cat-ingredient','Livres':'cat-livres','Matériaux':'cat-materiaux'};
 function renderInventaire(rows){
@@ -2120,9 +2196,10 @@ function updateAdminUI(){
   const ids={citoyens:'cit-add-wrap',garde:'gar-add-wrap',commerces:'com-add-wrap',cour:'cour-add-wrap',inventaire:'inv-add-wrap',lois:'lois-add-wrap'};
   ['citoyens','garde','commerces','cour','inventaire','lois'].forEach(s=>{const w=document.getElementById(ids[s]);if(w)w.style.display=canEditSection(s)?'block':'none';});
   const fonWrap=document.getElementById('fon-add-wrap');if(fonWrap)fonWrap.style.display=canEditSection('commerces')?'block':'none';
+  const ordreFabWrap=document.getElementById('ordre-fab-wrap');if(ordreFabWrap)ordreFabWrap.style.display=canEditSection('inventaire')?'block':'none';
   loadAll();
 }
-async function loadAll(){await Promise.all([loadCitoyens(),loadGardes(),loadCommerces(),loadDiplomatie(),loadCour(),loadInventaire(),loadLois()]);}
+async function loadAll(){await Promise.all([loadCitoyens(),loadGardes(),loadCommerces(),loadDiplomatie(),loadCour(),loadInventaire(),loadLois(),loadOrdresFab()]);}
 // ══════════════════════════════════════════════════════════════════════
 //  GESTION COMPTES
 // ══════════════════════════════════════════════════════════════════════
