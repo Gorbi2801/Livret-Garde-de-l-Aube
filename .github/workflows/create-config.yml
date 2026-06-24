@@ -19,17 +19,14 @@ jobs:
           AUTH_EMAIL_DOMAIN: ${{ secrets.AUTHEMAILDOMAIN }}
         run: |
           mkdir -p scripts
-          cat > scripts/config.js <<EOF
-window.GrimoireConfig = Object.freeze({
-  supabaseUrl: "${SUPABASE_URL}",
-  supabaseKey: "${SUPABASE_KEY}",
-  authEmailDomain: "${AUTH_EMAIL_DOMAIN}",
-  sections: ["citoyens","biblio","garde","commerces","diplomatie","cour","inventaire","lois","renseignements"]
-});
-EOF
+          echo 'window.GrimoireConfig = Object.freeze({' > scripts/config.js
+          echo "  supabaseUrl: \"${SUPABASE_URL}\"," >> scripts/config.js
+          echo "  supabaseKey: \"${SUPABASE_KEY}\"," >> scripts/config.js
+          echo "  authEmailDomain: \"${AUTH_EMAIL_DOMAIN}\"," >> scripts/config.js
+          echo "  sections: [\"citoyens\",\"biblio\",\"garde\",\"commerces\",\"diplomatie\",\"cour\",\"inventaire\",\"lois\",\"renseignements\"]" >> scripts/config.js
+          echo '});' >> scripts/config.js
 
       - name: Build / Deploy (placeholder)
         run: |
-          # Remplace par tes commandes de build ou de déploiement si nécessaire.
           echo "scripts/config.js généré :"
           ls -l scripts/config.js
