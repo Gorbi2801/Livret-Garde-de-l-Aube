@@ -48,6 +48,11 @@ jobs:
       - name: List site files
         run: ls -la site | sed -n '1,200p'
 
+      - name: Verify generated config is included
+        run: |
+          test -f site/scripts/config.js
+          echo "site/scripts/config.js is present"
+
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v5
         with:
