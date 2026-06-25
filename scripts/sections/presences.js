@@ -242,4 +242,3 @@ async function stopPresence(){
     toast('Erreur lors de la clôture.');
   }
 }
-}
