@@ -29,6 +29,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASEURL }}
           SUPABASE_KEY: ${{ secrets.SUPABASEKEY }}
           AUTH_EMAIL_DOMAIN: ${{ secrets.AUTHEMAILDOMAIN }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           node <<'NODE'
           const fs = require('fs');
@@ -43,6 +44,7 @@ jobs:
             supabaseUrl: process.env.SUPABASE_URL,
             supabaseKey: process.env.SUPABASE_KEY,
             authEmailDomain: process.env.AUTH_EMAIL_DOMAIN || context.window.GrimoireConfig.authEmailDomain,
+            discordPresenceWebhook: process.env.DISCORD_WEBHOOK || '',
           };
 
           fs.writeFileSync(

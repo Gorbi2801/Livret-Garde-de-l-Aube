@@ -178,6 +178,33 @@ function renderPresenceHistory(){
   }
 }
 
+
+// ── Notification Discord ─────────────────────────────────────────────
+async function notifyDiscord(type) {
+  const webhookUrl = window.GrimoireConfig?.discordPresenceWebhook;
+  if (!webhookUrl || webhookUrl === 'DISCORD_WEBHOOK_URL') return;
+
+  const garde      = session?.garde;
+  const prenom     = garde?.prenom || '';
+  const nom        = garde?.nom    || '';
+  const grade      = session?.grade || '';
+  const nomComplet = [prenom, nom].filter(Boolean).join(' ') || session?.displayName || 'Garde inconnu';
+
+  const content = type === 'start'
+    ? `🟢 **${nomComplet}** *(${grade})* a pris son service.`
+    : `🔴 **${nomComplet}** *(${grade})* est en fin de service.`;
+
+  try {
+    await fetch(webhookUrl, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ content }),
+    });
+  } catch (e) {
+    console.warn('[Discord] Notification de présence non envoyée.', e);
+  }
+}
+
 async function startPresence(){
   if(!session)return;
   if(presenceActiveRow()){toast('Tu es déjà marqué présent.');return;}
@@ -188,6 +215,7 @@ async function startPresence(){
     if(error)throw error;
     await loadPresences();
     if(typeof loadGardes==='function')await loadGardes();
+    await notifyDiscord('start');
     toast('Présence enregistrée.');
   }catch(error){
     console.error(error);
@@ -207,9 +235,11 @@ async function stopPresence(){
     if(error)throw error;
     await loadPresences();
     if(typeof loadGardes==='function')await loadGardes();
+    await notifyDiscord('stop');
     toast('Présence clôturée.');
   }catch(error){
     console.error(error);
     toast('Erreur lors de la clôture.');
   }
+}
 }
