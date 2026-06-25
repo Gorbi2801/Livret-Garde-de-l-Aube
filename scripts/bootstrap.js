@@ -21,6 +21,7 @@
     addLoi, saveLoi:addLoi, delLoi,
     loadMissives, setMissiveTab, filterMissives, selectMissive, sendMissive,
     loadPatrouilles, createPatrouille, closePatrouille, selectPresentPatrouilleGuards,
+    startPresence, stopPresence,
     saveNoteModal, saveNote:saveNoteModal, openNoteModal, closeNoteModal,
     showTab, toggleFiche, toggleRap, toggleAdd, toggleRelForm, removeRel,
     renderTab, goToFiche, saveFiche, deleteFiche, openEditFiche,
