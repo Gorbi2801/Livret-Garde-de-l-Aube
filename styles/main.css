@@ -67,7 +67,6 @@ header{background:linear-gradient(180deg,var(--green-dark) 0%,var(--green) 100%)
 .nav-btn .nav-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:0 0 auto;}
 .nav-btn .nav-icon img{display:block;width:32px;height:32px;object-fit:contain;}
 .nav-letter-icon{border:1px solid rgba(201,168,76,0.55);border-radius:50%;font-family:'Eagle Lake',serif;font-size:1.05rem;color:var(--gold);letter-spacing:0;}
-.nav-rune{border:1px solid rgba(201,168,76,0.55);border-radius:50%;font-family:'Eagle Lake',serif;font-size:1.15rem;color:var(--gold-light);background:rgba(0,0,0,0.22);letter-spacing:0;}
 
 /* ── LAYOUT ── */
 .main-layout{position:relative;z-index:1;}
@@ -200,6 +199,90 @@ header{background:linear-gradient(180deg,var(--green-dark) 0%,var(--green) 100%)
   .patrouille-grid{grid-template-columns:1fr;}
   .patrouille-form-grid{grid-template-columns:1fr;}
   .patrouille-members-field,.patrouille-objective-field{grid-column:auto;}
+}
+
+/* ── CARTE INTERACTIVE ── */
+.carte-shell{position:relative;display:grid;grid-template-columns:300px minmax(0,1fr);gap:1rem;align-items:stretch;min-height:calc(100vh - 250px);}
+.carte-sidebar{background:rgba(226,212,168,0.34);border:1px solid var(--border-g);border-top:3px solid var(--gold);padding:0.9rem;min-width:0;overflow:hidden;}
+.carte-shell.sidebar-collapsed{grid-template-columns:minmax(0,1fr);gap:0;}
+.carte-shell.sidebar-collapsed .carte-sidebar{display:none;}
+.carte-shell.sidebar-collapsed .carte-main{grid-column:1;}
+.carte-sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:0.6rem;margin-bottom:0.8rem;border-bottom:1px solid var(--border-g);padding-bottom:0.55rem;}
+.carte-sidebar-head h3,.carte-editor-head h3{font-family:'Eagle Lake',serif;font-size:1.05rem;color:var(--green-dark);letter-spacing:0.06em;line-height:1.25;}
+.carte-sidebar-handle{position:absolute;left:285px;top:0.75rem;z-index:30;width:30px;height:42px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--gold);background:var(--green-dark);color:var(--gold-light);font-family:'Eagle Lake',serif;font-size:1.3rem;line-height:1;cursor:pointer;transition:background 0.15s,border-color 0.15s,left 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.35);}
+.carte-sidebar-handle:hover{background:var(--green);border-color:var(--gold-light);}
+.carte-shell.sidebar-collapsed .carte-sidebar-handle{left:0.6rem;}
+.carte-filter-stack{display:grid;gap:0.65rem;margin-bottom:0.85rem;}
+.carte-filter-stack .form-field span,.carte-editor-grid .form-field span{font-family:'Eagle Lake',serif;font-size:0.92rem;font-weight:700;letter-spacing:0.06em;color:var(--ink);}
+.carte-filter-stack input,.carte-filter-stack select,.carte-editor-grid input,.carte-editor-grid select,.carte-editor-grid textarea{background:var(--parch);border:1px solid var(--border-g);color:var(--ink);font-family:'IM Fell English',serif;font-size:1rem;padding:0.35rem 0.55rem;width:100%;}
+.carte-filter-stack input:focus,.carte-filter-stack select:focus,.carte-editor-grid input:focus,.carte-editor-grid select:focus,.carte-editor-grid textarea:focus{outline:none;border-color:var(--green);}
+.carte-layers{border-top:1px solid var(--border-g);border-bottom:1px solid var(--border-g);padding:0.75rem 0;margin-bottom:0.85rem;}
+.carte-layers .profile-title{margin-bottom:0.5rem;}
+.carte-layers label{display:flex;align-items:center;gap:0.45rem;color:var(--ink-mid);font-family:'Eagle Lake',serif;font-size:0.9rem;letter-spacing:0.04em;margin-bottom:0.35rem;cursor:pointer;}
+.carte-layers input{accent-color:var(--green-dark);}
+.carte-create-actions{display:grid;gap:0.5rem;margin-bottom:0.85rem;}
+.carte-create-actions .btn-submit{width:100%;margin:0;}
+.carte-create-actions .btn-action{width:100%;margin:0;}
+.carte-pin-list{display:grid;gap:0.45rem;max-height:calc(100vh - 560px);min-height:120px;overflow:auto;padding-right:0.15rem;}
+.carte-pin-row{display:block;width:100%;border:1px solid rgba(93,73,47,0.25);background:rgba(240,230,200,0.44);padding:0.55rem 0.65rem;text-align:left;color:var(--ink);cursor:pointer;font-family:'IM Fell English',serif;}
+.carte-pin-row:hover,.carte-pin-row.active{border-color:var(--gold);background:rgba(201,168,76,0.18);}
+.carte-pin-row strong{display:flex;align-items:center;gap:0.35rem;font-family:'Eagle Lake',serif;font-size:0.92rem;letter-spacing:0.04em;color:var(--green-dark);line-height:1.25;}
+.carte-pin-row span{display:block;color:var(--ink-mid);font-style:italic;margin-top:0.22rem;}
+.carte-list-dot{display:inline-block;width:0.75rem;height:0.75rem;border-radius:50%;border:1px solid rgba(28,26,24,0.3);flex:0 0 auto;}
+.carte-main{min-width:0;display:flex;flex-direction:column;gap:0.75rem;}
+.carte-map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:0.6rem;flex-wrap:wrap;}
+.carte-overlay-toggle{background:rgba(14,12,11,0.48);color:rgba(232,213,163,0.72);border-color:rgba(201,168,76,0.42);}
+.carte-overlay-toggle.active{background:var(--gold-light);border-color:var(--gold);color:var(--green-dark);}
+.carte-placement-hint{font-family:'Eagle Lake',serif;color:var(--brown);letter-spacing:0.04em;font-size:0.95rem;margin-left:auto;}
+.carte-stage{position:relative;height:min(72vh,760px);min-height:520px;overflow:hidden;border:2px solid var(--green-dark);background:#0e0c0b;box-shadow:inset 0 0 36px rgba(0,0,0,0.55);touch-action:none;cursor:grab;}
+.carte-stage:active{cursor:grabbing;}
+.carte-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;}
+.carte-map-img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;user-select:none;pointer-events:none;}
+.carte-overlay-img{opacity:0;transition:opacity 0.18s;}
+.carte-overlay-img.visible{opacity:0.92;}
+.carte-zones{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:3;}
+.carte-zone-shape{fill:color-mix(in srgb,var(--zone-color) 34%,transparent);stroke:var(--zone-color);stroke-width:5;cursor:pointer;transition:fill 0.15s,stroke-width 0.15s,filter 0.15s;}
+.carte-zone-shape:hover,.carte-zone-shape.selected{fill:color-mix(in srgb,var(--zone-color) 48%,transparent);stroke-width:8;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.55));}
+.carte-zone-draft{fill:none;stroke:var(--gold);stroke-width:6;stroke-dasharray:18 12;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.55));}
+.carte-zone-point{fill:var(--gold-light);stroke:var(--green-dark);stroke-width:3;}
+.carte-pins{position:absolute;inset:0;}
+.carte-pin{position:absolute;width:28px;height:34px;border:0;background:transparent;cursor:pointer;transform:translate(-50%,-100%) scale(var(--pin-scale));transform-origin:50% 100%;z-index:4;}
+.carte-pin span{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--pin-color,var(--brown));border:2px solid var(--gold-light);box-shadow:0 3px 8px rgba(0,0,0,0.55);color:var(--gold-light);font-family:'Eagle Lake',serif;font-size:0.95rem;line-height:1;}
+.carte-pin span b{display:block;transform:rotate(45deg);font-weight:400;}
+.carte-pin:hover,.carte-pin.selected{z-index:8;}
+.carte-pin:hover span,.carte-pin.selected span{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,168,76,0.18),0 3px 8px rgba(0,0,0,0.6);filter:brightness(1.1);}
+.carte-pin-draft{pointer-events:none;z-index:7;}
+.carte-pin-draft span{background:var(--green-dark);border-style:dashed;}
+.carte-map-controls{position:absolute;right:0.8rem;top:0.8rem;z-index:20;display:flex;gap:0.35rem;align-items:center;background:rgba(14,12,11,0.68);border:1px solid rgba(201,168,76,0.35);padding:0.35rem;}
+.carte-map-controls .btn-action{min-width:2.2rem;padding:0.25rem 0.55rem;}
+.carte-editor,.carte-readonly{background:rgba(226,212,168,0.38);border:1px solid var(--border-g);border-top:3px solid var(--gold);padding:0.9rem;}
+.carte-editor-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:0.75rem;border-bottom:1px solid var(--border-g);padding-bottom:0.55rem;}
+.carte-editor-head h3{display:flex;align-items:center;gap:0.45rem;}
+.carte-editor-head span{color:var(--ink-mid);font-style:italic;}
+.carte-editor-grid{grid-template-columns:repeat(6,minmax(130px,1fr));}
+.carte-editor-grid .form-field{grid-column:span 2;}
+.carte-editor-grid input[type="color"]{height:2.35rem;padding:0.12rem;}
+.carte-report-field{grid-column:1/3;}
+.carte-report-field select{min-height:116px;}
+.carte-description-field{grid-column:3/-1;}
+.carte-description-field textarea{resize:vertical;min-height:116px;}
+.carte-editor-actions{display:flex;justify-content:flex-end;align-items:center;gap:0.55rem;margin-top:0.8rem;flex-wrap:wrap;}
+.carte-editor-actions .btn-submit:disabled{opacity:0.45;cursor:not-allowed;}
+.carte-help{color:var(--ink-mid);font-style:italic;margin-bottom:0.65rem;}
+.carte-empty-detail h3{font-family:'Eagle Lake',serif;color:var(--green-dark);font-size:1.05rem;margin-bottom:0.35rem;}
+.carte-empty-detail p{color:var(--ink-mid);font-style:italic;}
+.carte-linked-reports{display:grid;gap:0.35rem;margin-top:0.75rem;border-top:1px solid var(--border-g);padding-top:0.65rem;}
+.carte-linked-reports strong{font-family:'Eagle Lake',serif;color:var(--green-dark);letter-spacing:0.05em;}
+.carte-linked-reports span{color:var(--ink-mid);font-style:italic;}
+@media(max-width:980px){
+  .carte-shell,.carte-shell.sidebar-collapsed{grid-template-columns:1fr;gap:0.8rem;}
+  .carte-sidebar-handle{left:auto;right:0.75rem;}
+  .carte-shell.sidebar-collapsed .carte-sidebar-handle{left:auto;right:0.75rem;}
+  .carte-shell.sidebar-collapsed .carte-sidebar{display:none;}
+  .carte-stage{height:62vh;min-height:420px;}
+  .carte-editor-grid{grid-template-columns:1fr;}
+  .carte-report-field,.carte-description-field{grid-column:auto;}
+  .carte-pin-list{max-height:220px;}
 }
 
 /* ── MISSIVES ── */

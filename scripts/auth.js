@@ -12,10 +12,11 @@ const SECTION_LABELS={
   lois:'Codex',
   presences:'Présences',
   patrouilles:'Patrouilles',
+  carte:'Carte',
   missives:'Missives',
   renseignements:'Renseignements',
 };
-const DEFAULT_SECTION_ORDER=['citoyens','biblio','garde','commerces','diplomatie','cour','inventaire','lois','presences','patrouilles','missives','renseignements'];
+const DEFAULT_SECTION_ORDER=['citoyens','biblio','garde','commerces','diplomatie','cour','inventaire','lois','presences','patrouilles','carte','missives','renseignements'];
 
 function normalizeUsername(value){
   return value.trim().toLowerCase();
@@ -212,8 +213,8 @@ function sectionLabel(value){
 }
 
 function updateAdminUI(){
-  const ids={citoyens:'cit-add-wrap',garde:'gar-add-wrap',commerces:'com-add-wrap',cour:'cour-add-wrap',inventaire:'inv-add-wrap',lois:'lois-add-wrap',renseignements:'rens-add-wrap'};
-  ['citoyens','garde','commerces','cour','inventaire','lois','renseignements'].forEach(s=>{const w=document.getElementById(ids[s]);if(w)w.style.display=canEditSection(s)?'block':'none';});
+  const ids={citoyens:'cit-add-wrap',garde:'gar-add-wrap',commerces:'com-add-wrap',cour:'cour-add-wrap',inventaire:'inv-add-wrap',lois:'lois-add-wrap',carte:'carte-add-wrap',renseignements:'rens-add-wrap'};
+  ['citoyens','garde','commerces','cour','inventaire','lois','carte','renseignements'].forEach(s=>{const w=document.getElementById(ids[s]);if(w)w.style.display=canEditSection(s)?'block':'none';});
   const fonWrap=document.getElementById('fon-add-wrap');if(fonWrap)fonWrap.style.display=canEditSection('commerces')?'block':'none';
   const ordreFabWrap=document.getElementById('ordre-fab-wrap');if(ordreFabWrap)ordreFabWrap.style.display=canEditSection('inventaire')?'block':'none';
   const recetteWrap=document.getElementById('recette-add-wrap');if(recetteWrap)recetteWrap.style.display=canEditSection('inventaire')?'block':'none';
@@ -322,6 +323,7 @@ async function loadAccessibleSections(){
   if(canAccessSection('lois'))jobs.push(loadLois());
   if(canAccessSection('presences')&&typeof loadPresences==='function')jobs.push(loadPresences());
   if(canAccessSection('patrouilles')&&typeof loadPatrouilles==='function')jobs.push(loadPatrouilles());
+  if(canAccessSection('carte')&&typeof initCarte==='function')jobs.push(initCarte());
   if(canAccessSection('missives')&&typeof loadMissives==='function')jobs.push(loadMissives());
   if(canAccessSection('renseignements'))jobs.push(initRenseignements());
   await Promise.all(jobs);

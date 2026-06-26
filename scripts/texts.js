@@ -13,6 +13,7 @@ window.GrimoireTexts = Object.freeze({
     lois: 'Codex',
     presences: 'Présences',
     patrouilles: 'Patrouilles',
+    carte: 'Carte',
     missives: 'Missives',
     renseignements: 'Renseignements',
   }),

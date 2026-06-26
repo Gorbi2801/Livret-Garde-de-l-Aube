@@ -221,6 +221,7 @@ function buildRapportHTML(r){
   const ficheLabel = {confirme:'✅ Confirmée', nonverif:'⚠ Non vérifiée', urgente:'🔴 Urgente'}[r.fiabilite]||r.fiabilite;
   const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR') : '';
   const preview = (r.contenu||'').substring(0,60)+(r.contenu&&r.contenu.length>60?'…':'');
+  const author = rensAuthorLabel(r);
   return `
   <div class="rapport-accordion ${r.fiabilite||''}" id="rap-${r.id}">
     <div class="rapport-acc-head" onclick="toggleRap('rap-${r.id}')">
@@ -230,6 +231,7 @@ function buildRapportHTML(r){
         <span class="badge badge-${r.fiabilite||'nonverif'}">${ficheLabel}</span>
         <span class="rapport-acc-source">${escH(r.source||'Inconnu')}</span>
         <span class="rapport-acc-preview">${escH(preview)}</span>
+        ${author?`<span class="rapport-acc-author">- ${escH(author)}</span>`:''}
       </div>
       <div style="display:flex;gap:.3rem;">
         ${peutModifier?`<button class="btn-sm" onclick="event.stopPropagation();deleteRapport('${r.id}','${r.fiche_id}')">Suppr.</button>`:''}
@@ -244,6 +246,20 @@ function buildRapportHTML(r){
       </div>`:''}
     </div>
   </div>`;
+}
+
+function rensCurrentAuthor(){
+  if(!session)return {};
+  const name = [session.garde?.prenom,session.garde?.nom].filter(Boolean).join(' ') || session.displayName || session.username || '';
+  const grade = session.garde?.grade || session.grade || '';
+  return {name, grade};
+}
+
+function rensAuthorLabel(row){
+  const name = row?.created_by_name || '';
+  const grade = row?.created_by_grade || '';
+  if(name&&grade&&grade!=='—')return `${name} (${grade})`;
+  return name||'';
 }
 
 function buildAddRapportFormHTML(ficheId){
@@ -366,8 +382,19 @@ async function saveRapport(ficheId){
   const contenu  = document.getElementById('raf-cnt-'+ficheId).value.trim();
   const action   = document.getElementById('raf-act-'+ficheId).value.trim();
   if(!contenu){ alert('Le contenu est obligatoire.'); return; }
-  try{await sbPost('mk_rens_rapports',{fiche_id: ficheId, source: source||null, fiabilite, contenu, action_recommandee: action||null});}
-  catch(error){ alert('Erreur : '+error.message); return; }
+  const author=rensCurrentAuthor();
+  const payload={fiche_id: ficheId, source: source||null, fiabilite, contenu, action_recommandee: action||null};
+  const payloadWithAuthor={
+    ...payload,
+    created_by:session?.user?.id||null,
+    created_by_name:author.name||null,
+    created_by_grade:author.grade||null,
+  };
+  try{await sbPost('mk_rens_rapports',payloadWithAuthor);}
+  catch(error){
+    try{await sbPost('mk_rens_rapports',payload);}
+    catch(fallbackError){ alert('Erreur : '+fallbackError.message); return; }
+  }
   await rensLoad();
 }
 
@@ -422,4 +449,3 @@ async function initRenseignements(){
 
 // ── Escape HTML ───────────────────────────────────────────────────
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-

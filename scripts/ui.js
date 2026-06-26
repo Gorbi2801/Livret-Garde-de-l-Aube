@@ -12,6 +12,7 @@ function switchSection(sec,btn){
   activeSection=sec;
   if(sec==='presences'&&typeof loadPresences==='function')loadPresences();
   if(sec==='patrouilles'&&typeof loadPatrouilles==='function')loadPatrouilles();
+  if(sec==='carte'&&typeof initCarte==='function')initCarte();
   if(sec==='missives'&&typeof loadMissives==='function')loadMissives();
   if(sec==='superadmin'&&typeof loadSuperadmin==='function')loadSuperadmin();
 }
