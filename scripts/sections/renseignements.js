@@ -308,37 +308,49 @@ function buildRapportHTML(r){
 
 // ── Liens rapport → fiches tierces ───────────────────────────────────
 function buildRapportLiensHTML(r){
-  const peutModifier  = rensCanEditOwn(r);
+  const peutModifier  = rensCanWrite();
   const peutSupprimer = rensCanDelete();
   const liens = RENS.rapportLiens.filter(l=>l.rapport_id===r.id);
+
   const liensHTML = liens.map(l=>{
     const fiche = RENS.fiches.find(f=>f.id===l.fiche_id);
     if(!fiche) return '';
-    const typeLabel = {lieux:'📍 Lieu',individus:'👤 Individu',groupes:'👥 Groupe'}[fiche.type]||fiche.type;
-    return `<span class="fl-tag" style="display:inline-flex;align-items:center;gap:.3rem;margin:.2rem .3rem .2rem 0;">
-      <span style="font-size:.78rem;opacity:.7;">${typeLabel} ·</span>
-      <a href="#" onclick="event.preventDefault();goToFiche('${fiche.id}')" style="font-style:italic;">${escH(fiche.nom)}</a>
-      ${peutSupprimer?`<span class="fl-del" onclick="deleteRapportLien('${l.id}')" title="Supprimer ce lien" style="cursor:pointer;color:#7A1010;margin-left:.2rem;">×</span>`:''}
-    </span>`;
+    const typeLabel = fiche.type==='lieux'?'Lieu':fiche.type==='individus'?'Individu':'Groupe';
+    return `<a class="fiche-link" onclick="goToFiche('${fiche.id}','${fiche.type}')">
+      <span class="fl-type">${typeLabel} ·</span> ${escH(fiche.nom)}
+      ${peutSupprimer?`<span class="fl-del" onclick="event.stopPropagation();deleteRapportLien('${l.id}')" title="Supprimer ce lien">×</span>`:''}
+    </a>`;
   }).join('');
 
-  const fichesDispo = RENS.fiches
-    .filter(f=>f.id!==r.fiche_id && !liens.find(l=>l.fiche_id===f.id))
-    .map(f=>`<option value="${f.id}">${escH(f.nom)} (${f.type})</option>`)
-    .join('');
+  const dejalie = liens.map(l=>l.fiche_id);
+  const opts = ['lieux','individus','groupes'].map(type=>{
+    const dispo = RENS.fiches.filter(x=>x.type===type && x.id!==r.fiche_id && !dejalie.includes(x.id));
+    if(!dispo.length) return '';
+    return `<optgroup label="${type==='lieux'?'Lieux':type==='individus'?'Individus':'Groupes'}">
+      ${dispo.map(x=>`<option value="${x.id}">${escH(x.nom)}</option>`).join('')}
+    </optgroup>`;
+  }).join('');
 
   return `
-  <div class="rapport-liens" style="margin-top:.6rem;padding-top:.5rem;border-top:1px solid var(--border-g);">
-    <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);margin-bottom:.35rem;">Fiches liées à ce rapport</div>
-    <div id="rl-list-${r.id}">${liensHTML||'<span style="font-size:.82rem;opacity:.6;font-style:italic;">Aucune fiche liée.</span>'}</div>
+  <div class="relations-section">
+    <div class="relations-title">
+      Fiches liées à ce rapport
+      ${peutModifier?`<button class="btn-sm" onclick="toggleRelForm('rlform-${r.id}')">+ Ajouter une relation</button>`:''}
+    </div>
+    <div class="relations-list" id="rl-list-${r.id}">
+      ${liensHTML||'<span style="font-style:italic;color:var(--ink-faint);font-size:.88rem;">Aucune fiche liée.</span>'}
+    </div>
     ${peutModifier?`
-    <div style="display:flex;gap:.4rem;align-items:center;margin-top:.4rem;">
-      <select id="rl-sel-${r.id}" style="flex:1;font-size:.82rem;">
-        <option value="">— Lier une fiche —</option>
-        ${fichesDispo}
+    <div class="add-relation-form" id="rlform-${r.id}">
+      <label>Lier à :</label>
+      <select id="rl-sel-${r.id}">
+        <option value="">— Sélectionner une fiche —</option>
+        ${opts||'<option disabled>Aucune fiche disponible</option>'}
       </select>
-      <button class="btn-sm" onclick="addRapportLien('${r.id}')">+ Lier</button>
-    </div>`:''}
+      <button class="btn-add" style="font-size:.78rem;padding:.28rem .7rem;" onclick="addRapportLien('${r.id}')">Lier</button>
+      <button class="btn-sm" onclick="toggleRelForm('rlform-${r.id}')">Annuler</button>
+    </div>`:''
+    }
   </div>`;
 }
 
