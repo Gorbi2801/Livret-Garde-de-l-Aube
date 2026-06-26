@@ -4,11 +4,12 @@
 
 // ── State ────────────────────────────────────────────────────────────
 const RENS = {
-  fiches:    [],   // mk_rens_fiches
-  rapports:  [],   // mk_rens_rapports
-  relations: [],   // mk_rens_relations
-  mapNodes:  [],   // mk_rens_map_nodes
-  mapLinks:  [],   // mk_rens_map_links
+  fiches:       [],   // mk_rens_fiches
+  rapports:     [],   // mk_rens_rapports
+  relations:    [],   // mk_rens_relations
+  rapportLiens: [],   // mk_rens_rapport_liens
+  mapNodes:     [],   // mk_rens_map_nodes
+  mapLinks:     [],   // mk_rens_map_links
   activeTab: 'lieux',
   searchQ:   '',
   filterStatut: '',
@@ -97,18 +98,20 @@ async function rensOptionalGet(table, params = ''){
 
 async function rensLoad(){
   RENS.mapReady = true;
-  const [rf, rr, rl, mn, ml] = await Promise.all([
+  const [rf, rr, rl, rpl, mn, ml] = await Promise.all([
     sbGet('mk_rens_fiches','?select=*&order=created_at.desc'),
     sbGet('mk_rens_rapports','?select=*&order=created_at.desc'),
     sbGet('mk_rens_relations','?select=*'),
+    rensOptionalGet('mk_rens_rapport_liens','?select=*'),
     rensOptionalGet('mk_rens_map_nodes','?select=*&order=created_at.asc'),
     rensOptionalGet('mk_rens_map_links','?select=*')
   ]);
-  RENS.fiches    = rf  || [];
-  RENS.rapports  = rr  || [];
-  RENS.relations = rl  || [];
-  RENS.mapNodes  = mn  || [];
-  RENS.mapLinks  = ml  || [];
+  RENS.fiches        = rf  || [];
+  RENS.rapports      = rr  || [];
+  RENS.relations     = rl  || [];
+  RENS.rapportLiens  = rpl || [];
+  RENS.mapNodes      = mn  || [];
+  RENS.mapLinks      = ml  || [];
   rensRenderAll();
 }
 
@@ -297,11 +300,65 @@ function buildRapportHTML(r){
         <label>Action recommandée</label>
         <p>${escH(r.action_recommandee)}</p>
       </div>`:''}
+      ${buildRapportLiensHTML(r)}
       ${peutModifier?buildEditRapportFormHTML(r):''}
     </div>
   </div>`;
 }
 
+// ── Liens rapport → fiches tierces ───────────────────────────────────
+function buildRapportLiensHTML(r){
+  const peutModifier  = rensCanEditOwn(r);
+  const peutSupprimer = rensCanDelete();
+  const liens = RENS.rapportLiens.filter(l=>l.rapport_id===r.id);
+  const liensHTML = liens.map(l=>{
+    const fiche = RENS.fiches.find(f=>f.id===l.fiche_id);
+    if(!fiche) return '';
+    const typeLabel = {lieux:'📍 Lieu',individus:'👤 Individu',groupes:'👥 Groupe'}[fiche.type]||fiche.type;
+    return `<span class="fl-tag" style="display:inline-flex;align-items:center;gap:.3rem;margin:.2rem .3rem .2rem 0;">
+      <span style="font-size:.78rem;opacity:.7;">${typeLabel} ·</span>
+      <a href="#" onclick="event.preventDefault();goToFiche('${fiche.id}')" style="font-style:italic;">${escH(fiche.nom)}</a>
+      ${peutSupprimer?`<span class="fl-del" onclick="deleteRapportLien('${l.id}')" title="Supprimer ce lien" style="cursor:pointer;color:#7A1010;margin-left:.2rem;">×</span>`:''}
+    </span>`;
+  }).join('');
+
+  const fichesDispo = RENS.fiches
+    .filter(f=>f.id!==r.fiche_id && !liens.find(l=>l.fiche_id===f.id))
+    .map(f=>`<option value="${f.id}">${escH(f.nom)} (${f.type})</option>`)
+    .join('');
+
+  return `
+  <div class="rapport-liens" style="margin-top:.6rem;padding-top:.5rem;border-top:1px solid var(--border-g);">
+    <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);margin-bottom:.35rem;">Fiches liées à ce rapport</div>
+    <div id="rl-list-${r.id}">${liensHTML||'<span style="font-size:.82rem;opacity:.6;font-style:italic;">Aucune fiche liée.</span>'}</div>
+    ${peutModifier?`
+    <div style="display:flex;gap:.4rem;align-items:center;margin-top:.4rem;">
+      <select id="rl-sel-${r.id}" style="flex:1;font-size:.82rem;">
+        <option value="">— Lier une fiche —</option>
+        ${fichesDispo}
+      </select>
+      <button class="btn-sm" onclick="addRapportLien('${r.id}')">+ Lier</button>
+    </div>`:''}
+  </div>`;
+}
+
+async function addRapportLien(rapportId){
+  const sel = document.getElementById('rl-sel-'+rapportId);
+  const ficheId = sel?.value;
+  if(!ficheId){ toast('Sélectionne une fiche.'); return; }
+  try{
+    await sbPost('mk_rens_rapport_liens',{rapport_id:rapportId, fiche_id:ficheId});
+    await rensLoad();
+  }catch(error){ alert('Erreur : '+error.message); }
+}
+
+async function deleteRapportLien(lienId){
+  if(!confirm('Supprimer ce lien ?')) return;
+  try{
+    await sbDelete('mk_rens_rapport_liens',`?id=eq.${lienId}`);
+    await rensLoad();
+  }catch(error){ alert('Erreur : '+error.message); }
+}
 function rensCurrentAuthor(){
   if(!session)return {};
   const name = [session.garde?.prenom,session.garde?.nom].filter(Boolean).join(' ') || session.displayName || session.username || '';
