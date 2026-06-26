@@ -140,7 +140,7 @@ function rensFilteredFiches(type){
   let fiches = type ? RENS.fiches.filter(f=>f.type===type) : [...RENS.fiches];
   if(RENS.searchQ){
     const q = RENS.searchQ.toLowerCase();
-    fiches = fiches.filter(f=>f.nom.toLowerCase().includes(q)||(f.sous_titre||'').toLowerCase().includes(q));
+    fiches = fiches.filter(f=>f.nom.toLowerCase().includes(q));
   }
   if(RENS.filterStatut) fiches = fiches.filter(f=>f.statut===RENS.filterStatut);
   return fiches;
@@ -171,7 +171,6 @@ function buildFicheHTML(f){
   const badgeUrgente = f.urgente ? `<span class="badge badge-urgente">🔴 Urgente</span>` : '';
   const badgeStatut  = f.statut && f.statut!=='neutre'
     ? `<span class="badge badge-${f.statut==='surveillance'?'surveille':f.statut==='recherche'?'recherche':'neutralise'}">${f.statut==='surveillance'?'Surveillance active':f.statut==='recherche'?'Recherché':'Neutralisé'}</span>` : '';
-  const badgeType    = f.type_label ? `<span class="badge badge-type">${f.type_label}</span>` : '';
 
   // Champs rapides depuis meta JSON
   const meta = f.meta || {};
@@ -195,11 +194,10 @@ function buildFicheHTML(f){
         <span class="fiche-chevron">▶</span>
         <div>
           <div class="fiche-nom">${escH(f.nom)}</div>
-          ${f.sous_titre?`<div class="fiche-sub">${escH(f.sous_titre)} · ${raps.length} rapport(s)</div>`:''}
         </div>
       </div>
       <div class="fiche-badges">
-        ${badgeType}${badgeUrgente}${badgeStatut}
+        ${badgeUrgente}${badgeStatut}
         ${peutModifier?`<button class="btn-sm" style="margin-left:.5rem;" onclick="event.stopPropagation();openEditFiche('${f.id}')">Modifier</button>`:''}
         ${peutSupprimer?`<button class="btn-sm" style="color:#7A1010;" onclick="event.stopPropagation();deleteFiche('${f.id}')">Suppr.</button>`:''}
       </div>
@@ -404,8 +402,6 @@ function buildNewFicheFormHTML(){
       </div>
     </div>
     <div class="form-row">
-      <div class="field"><label>Sous-titre / description courte</label><input type="text" id="nf-sub" placeholder="Ex: Grotte · Châtellerie de Blancherive"></div>
-      <div class="field"><label>Label de type</label><input type="text" id="nf-typelabel" placeholder="Ex: Repaire suspecté, Suspect, Vampires..."></div>
     </div>
     <div class="form-row">
       <div class="field"><label>Statut</label>
@@ -450,8 +446,6 @@ async function saveFiche(){
   if(!nom){ alert('Le nom est obligatoire.'); return; }
   const payload = {
     nom, type,
-    sous_titre:   document.getElementById('nf-sub').value.trim()||null,
-    type_label:   document.getElementById('nf-typelabel').value.trim()||null,
     statut:       document.getElementById('nf-statut').value,
     urgente:      document.getElementById('nf-urgente').checked,
     notes:        document.getElementById('nf-notes').value.trim()||null,
@@ -488,10 +482,8 @@ function buildEditFicheFormHTML(f){
     <div style="font-family:'Eagle Lake',serif;font-size:.9rem;color:var(--green-dark);margin-bottom:.75rem;">Modifier la fiche</div>
     <div class="form-row">
       <div class="field"><label>Nom *</label><input type="text" id="ef-nom-${f.id}" value="${escH(f.nom)}" placeholder="Nom de la cible..."></div>
-      <div class="field"><label>Label de type</label><input type="text" id="ef-typelabel-${f.id}" value="${escH(f.type_label||'')}" placeholder="Ex: Repaire suspecté, Suspect..."></div>
     </div>
     <div class="form-row">
-      <div class="field"><label>Sous-titre</label><input type="text" id="ef-sub-${f.id}" value="${escH(f.sous_titre||'')}" placeholder="Ex: Grotte · Châtellerie de Blancherive"></div>
       <div class="field"><label>Statut</label>
         <select id="ef-statut-${f.id}">
           <option value="neutre"${f.statut==='neutre'?' selected':''}>Neutre</option>
@@ -534,8 +526,6 @@ async function saveEditFiche(id){
   if(!nom){ alert('Le nom est obligatoire.'); return; }
   const payload = {
     nom,
-    sous_titre:  document.getElementById('ef-sub-'+id)?.value.trim()||null,
-    type_label:  document.getElementById('ef-typelabel-'+id)?.value.trim()||null,
     statut:      document.getElementById('ef-statut-'+id)?.value||'neutre',
     urgente:     document.getElementById('ef-urgente-'+id)?.checked||false,
     notes:       document.getElementById('ef-notes-'+id)?.value.trim()||null,
