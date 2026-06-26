@@ -3,6 +3,7 @@
 // ══════════════════════════════════════════════════════════════════════
 function switchSection(sec,btn){
   if(!canAccessSection(sec))return;
+  if(sec==='carte'&&typeof initCarte==='function')initCarte();
   document.querySelectorAll('.section-page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const page=document.getElementById('page-'+sec);
@@ -12,7 +13,6 @@ function switchSection(sec,btn){
   activeSection=sec;
   if(sec==='presences'&&typeof loadPresences==='function')loadPresences();
   if(sec==='patrouilles'&&typeof loadPatrouilles==='function')loadPatrouilles();
-  if(sec==='carte'&&typeof initCarte==='function')initCarte();
   if(sec==='missives'&&typeof loadMissives==='function')loadMissives();
   if(sec==='superadmin'&&typeof loadSuperadmin==='function')loadSuperadmin();
 }
