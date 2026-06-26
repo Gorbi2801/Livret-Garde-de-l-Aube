@@ -677,6 +677,7 @@ async function saveRapport(ficheId){
     try{await sbPost('mk_rens_rapports',payload);}
     catch(fallbackError){ alert('Erreur : '+fallbackError.message); return; }
   }
+  await notifyDiscordRenseignement();
   await rensLoad();
 }
 
