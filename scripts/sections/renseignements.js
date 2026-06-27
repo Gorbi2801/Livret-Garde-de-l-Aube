@@ -793,8 +793,9 @@ function injectCarteTab(){
       <div class="rens-map-notice">Carte mentale des rapports : ajoutez les rapports utiles au tableau, déplacez-les librement, reliez les indices avec des fils colorés. Double-cliquez sur une carte pour ouvrir le rapport.</div>
       <div class="rens-map-toolbar">
         ${rensCanWrite()?`
-          <button type="button" class="btn-add" onclick="rensOpenMapReportPicker()">+ Ajouter rapport</button>
-          <button type="button" class="btn-sm" onclick="rensStartMapLink()">Relier deux rapports</button>
+          <button type="button" class="btn-add" onclick="rensOpenMapReportPicker('rapport')">+ Ajouter rapport</button>
+          <button type="button" class="btn-add" onclick="rensOpenMapReportPicker('fiche')" style="background:var(--gold-dark,#7a6030);margin-left:.4rem;">+ Ajouter fiche</button>
+          <button type="button" class="btn-sm" onclick="rensStartMapLink()">Relier deux éléments</button>
           <button type="button" class="btn-sm" onclick="rensCancelMapLink()">Annuler liaison</button>
           <label class="rens-map-color">Couleur du fil <input id="rensMapLinkColor" type="color" value="#8A1010" onchange="rensSetMapLinkColor(this.value)"></label>
           ${rensCanDelete()?`<button type="button" class="btn-sm btn-danger-soft" onclick="rensDeleteSelectedMapItem()">Supprimer sélection</button>`:''}
@@ -802,16 +803,22 @@ function injectCarteTab(){
         <span id="rensMapModeLabel" class="rens-map-mode">Déplacez les cartes comme sur un tableau d'enquête.</span>
       </div>
       <div id="rensMapPicker" class="rens-map-picker" hidden>
-        <select id="rensMapReportType" onchange="rensSetMapReportType(this.value)">
-          ${['all','lieux','individus','groupes'].map(type=>`<option value="${type}">${escH({all:'Tous les rapports',lieux:'Lieux',individus:'Individus',groupes:'Groupes'}[type])}</option>`).join('')}
-        </select>
-        <div id="rensMapReportList" class="rens-map-report-list"></div>
+        <div id="rensMapPickerRapport">
+          <select id="rensMapReportType" onchange="rensSetMapReportType(this.value)">
+            ${['all','lieux','individus','groupes'].map(type=>`<option value="${type}">${escH({all:'Tous les rapports',lieux:'Lieux',individus:'Individus',groupes:'Groupes'}[type])}</option>`).join('')}
+          </select>
+          <div id="rensMapReportList" class="rens-map-report-list"></div>
+        </div>
+        <div id="rensMapPickerFiche" hidden>
+          <div id="rensMapFicheList" class="rens-map-report-list"></div>
+        </div>
       </div>
       <div class="rens-map-legend">
         <span><i class="rens-map-dot rens-map-dot-lieu"></i>Lieu</span>
         <span><i class="rens-map-dot rens-map-dot-individu"></i>Individu</span>
         <span><i class="rens-map-dot rens-map-dot-groupe"></i>Groupe</span>
         <span><i class="rens-map-dot rens-map-dot-danger"></i>Urgente / Recherché</span>
+        <span style="display:inline-flex;align-items:center;gap:.3rem;"><i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#c8a84b;border:2px solid #7a6030;"></i>Fiche centrale</span>
         <em>Un fil représente une piste ou une connexion d'enquête.</em>
       </div>
       <div class="rens-map-shell">
@@ -859,7 +866,7 @@ function rensMapTypeColors(type){
 }
 
 function rensMapReportListHtml(){
-  const spawned = new Set(RENS.mapNodes.map(node=>node.report_id));
+  const spawned = new Set(RENS.mapNodes.map(node=>node.report_id).filter(Boolean));
   const reports = RENS.rapports
     .filter(report=>RENS.mapPickerType==='all'||rensRapportType(report)===RENS.mapPickerType)
     .filter(report=>!spawned.has(report.id));
@@ -870,17 +877,41 @@ function rensMapReportListHtml(){
   </button>`).join('');
 }
 
+function rensMapFicheListHtml(){
+  const spawned = new Set(RENS.mapNodes.map(node=>node.fiche_id).filter(Boolean));
+  const fiches = RENS.fiches.filter(f=>!spawned.has(f.id));
+  if(!fiches.length)return '<p class="sa-empty">Toutes les fiches sont déjà sur la carte.</p>';
+  return fiches.map(f=>`<button type="button" class="rens-map-report-choice" onclick="rensSpawnMapFiche('${escJs(f.id)}')">
+    <strong>${escH(f.nom)}</strong>
+    <span>${escH({lieux:'Lieu',individus:'Individu',groupes:'Groupe'}[f.type]||f.type)}${f.notes?` · ${escH(f.notes.slice(0,80))}`:''}</span>
+  </button>`).join('');
+}
+
 function rensRenderMapPicker(){
   const list = document.getElementById('rensMapReportList');
   if(list) list.innerHTML = rensMapReportListHtml();
 }
 
-function rensOpenMapReportPicker(){
+function rensRenderMapFichePicker(){
+  const list = document.getElementById('rensMapFicheList');
+  if(list) list.innerHTML = rensMapFicheListHtml();
+}
+
+function rensOpenMapReportPicker(mode){
   if(!rensCanWrite())return;
   const picker = document.getElementById('rensMapPicker');
   if(!picker)return;
-  picker.hidden = !picker.hidden;
-  if(!picker.hidden)rensRenderMapPicker();
+  const rapportDiv = document.getElementById('rensMapPickerRapport');
+  const ficheDiv   = document.getElementById('rensMapPickerFiche');
+  const isFiche    = mode === 'fiche';
+  const isAlreadyOpen = !picker.hidden;
+  const isSameMode = (isFiche && ficheDiv && !ficheDiv.hidden) || (!isFiche && rapportDiv && !rapportDiv.hidden);
+  if(isAlreadyOpen && isSameMode){ picker.hidden = true; return; }
+  picker.hidden = false;
+  if(rapportDiv) rapportDiv.hidden = isFiche;
+  if(ficheDiv)   ficheDiv.hidden   = !isFiche;
+  if(isFiche) rensRenderMapFichePicker();
+  else rensRenderMapPicker();
 }
 
 function rensSetMapReportType(type){
@@ -918,6 +949,7 @@ async function rensSpawnMapReport(reportId){
   try{
     await sbPost('mk_rens_map_nodes',{
       report_id: reportId,
+      node_type: 'rapport',
       x: pos.x,
       y: pos.y,
       created_by: session.user.id,
@@ -928,10 +960,37 @@ async function rensSpawnMapReport(reportId){
     toast('Rapport ajouté à la carte mentale.');
   }catch(error){
     console.error(error);
-    toast('Impossible d’ajouter ce rapport à la carte mentale.');
+    toast('Impossible d\'ajouter ce rapport à la carte mentale.');
   }
 }
 
+async function rensSpawnMapFiche(ficheId){
+  if(!rensCanWrite())return;
+  if(!RENS.mapReady){toast('Applique le SQL de carte mentale des renseignements avant.');return;}
+  const existing = RENS.mapNodes.find(node=>node.fiche_id===ficheId);
+  if(existing){
+    RENS.selectedMapNode = existing.id;
+    rensRenderCarte();
+    return;
+  }
+  const pos = rensDefaultMapPosition();
+  try{
+    await sbPost('mk_rens_map_nodes',{
+      fiche_id: ficheId,
+      node_type: 'fiche',
+      x: pos.x,
+      y: pos.y,
+      created_by: session.user.id,
+    });
+    const picker = document.getElementById('rensMapPicker');
+    if(picker)picker.hidden = true;
+    await rensLoad();
+    toast('Fiche ajoutée à la carte mentale.');
+  }catch(error){
+    console.error(error);
+    toast('Impossible d\'ajouter cette fiche à la carte mentale.');
+  }
+}
 async function rensSaveMapNodePosition(nodeId, x, y){
   const node = RENS.mapNodes.find(row=>row.id===nodeId);
   if(!rensCanEditOwn(node)||!RENS.mapReady)return;
@@ -1014,33 +1073,44 @@ function rensRenderCarte(){
     return;
   }
 
-  container.innerHTML = '<p class="rens-map-empty">Préparation du tableau d’enquête...</p>';
+  container.innerHTML = '<p class="rens-map-empty">Préparation du tableau d\'enquête...</p>';
   rensLoadVisNetwork(()=>{
     const nodes = new vis.DataSet(RENS.mapNodes.map((node,index)=>{
+      const isFiche = node.node_type === 'fiche';
+      const selected = RENS.selectedMapNode===node.id;
+      if(isFiche){
+        const fiche = RENS.fiches.find(f=>f.id===node.fiche_id);
+        const rapsCount = RENS.rapports.filter(r=>r.fiche_id===node.fiche_id).length;
+        return {
+          id: node.id, ficheId: node.fiche_id,
+          x: Number.isFinite(Number(node.x)) ? Number(node.x) : rensDefaultMapPosition(index).x,
+          y: Number.isFinite(Number(node.y)) ? Number(node.y) : rensDefaultMapPosition(index).y,
+          label: `${fiche?.nom||'Fiche'}${rapsCount?`
+(${rapsCount} rapport${rapsCount>1?'s':''})` :''}`,
+          title: fiche?.nom||'Fiche centrale',
+          shape: 'ellipse',
+          color:{ background: selected ? '#f5ead0' : '#e8d49a', border: selected ? '#8a1010' : '#7a6030', highlight:{background:'#f5ead0',border:'#8a1010'} },
+          borderWidth: selected ? 3 : 2,
+          font:{face:'serif',size:15,color:'#3a2a0a',bold:true,multi:true}, margin:14,
+        };
+      }
       const report = RENS.rapports.find(r=>r.id===node.report_id);
       const fiche = rensFicheForRapport(report);
       const type = rensRapportType(report);
       const colors = rensMapTypeColors(type);
-      const selected = RENS.selectedMapNode===node.id;
       return {
-        id: node.id,
-        reportId: node.report_id,
+        id: node.id, reportId: node.report_id,
         x: Number.isFinite(Number(node.x)) ? Number(node.x) : rensDefaultMapPosition(index).x,
         y: Number.isFinite(Number(node.y)) ? Number(node.y) : rensDefaultMapPosition(index).y,
-        label: `${fiche?.nom||'Fiche'}\n${report?.titre||'Rapport'}`,
+        label: `${fiche?.nom||'Fiche'}
+${report?.titre||'Rapport'}`,
         title: rensRapportLabel(report),
         shape: 'box',
-        color:{
-          background: selected ? '#f0d8d8' : colors.bg,
-          border: selected ? '#8a1010' : colors.border,
-          highlight:{background:'#efe1c4',border:'#8a1010'},
-        },
+        color:{ background: selected ? '#f0d8d8' : colors.bg, border: selected ? '#8a1010' : colors.border, highlight:{background:'#efe1c4',border:'#8a1010'} },
         borderWidth: selected ? 3 : 1.5,
-        font:{face:'serif',size:14,color:'#1c1a18',multi:true},
-        margin:12,
+        font:{face:'serif',size:14,color:'#1c1a18',multi:true}, margin:12,
       };
     }));
-
     const edges = new vis.DataSet(RENS.mapLinks.map(link=>({
       id: link.id,
       from: link.source_node_id,
@@ -1073,7 +1143,11 @@ function rensRenderCarte(){
         }
         return;
       }
-      if(RENS.selectedMapNode)rensUpdateMapModeLabel('Carte sélectionnée. Double-cliquez pour ouvrir le rapport, ou supprimez-la si besoin.');
+      if(RENS.selectedMapNode){
+        const node = RENS.mapNodes.find(n=>n.id===RENS.selectedMapNode);
+        const label = node?.node_type==='fiche' ? 'Fiche sélectionnée' : 'Carte sélectionnée';
+        rensUpdateMapModeLabel(`${label}. Double-cliquez pour ouvrir, ou supprimez-la si besoin.`);
+      }
       else if(RENS.selectedMapLink)rensUpdateMapModeLabel('Fil sélectionné. Vous pouvez le supprimer si besoin.');
       else rensUpdateMapModeLabel('Déplacez les cartes comme sur un tableau d’enquête.');
     });
@@ -1081,7 +1155,9 @@ function rensRenderCarte(){
     rensMapNetwork.on('doubleClick', params=>{
       const nodeId = params.nodes[0];
       const node = RENS.mapNodes.find(row=>row.id===nodeId);
-      if(node)goToRapport(node.report_id);
+      if(!node) return;
+      if(node.node_type === 'fiche') goToFiche(node.fiche_id, RENS.fiches.find(f=>f.id===node.fiche_id)?.type);
+      else goToRapport(node.report_id);
     });
 
     rensMapNetwork.on('dragEnd', params=>{
