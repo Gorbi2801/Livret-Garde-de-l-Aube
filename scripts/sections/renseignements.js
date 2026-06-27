@@ -287,7 +287,7 @@ function buildRapportHTML(r){
         <span class="rapport-acc-chevron">▶</span>
         <span class="rapport-acc-date">${date}</span>
         <span class="badge badge-${r.fiabilite==="fausse"?"invalidee":r.fiabilite||"nonverif"}">${ficheLabel}</span>
-        <span class="rapport-acc-source">${escH(r.source||'Inconnu')}</span>
+        <span class="rapport-acc-titre">${escH(r.titre||'Inconnu')}</span>
         <span class="rapport-acc-preview">${escH(preview)}</span>
         ${author?`<span class="rapport-acc-author">- ${escH(author)}</span>`:''}
       </div>
@@ -334,7 +334,7 @@ function buildRapportLiensHTML(r){
     if(!autre) return '';
     const ficheLiee = RENS.fiches.find(f=>f.id===autre.fiche_id);
     const date = autre.created_at ? new Date(autre.created_at).toLocaleDateString('fr-FR') : '';
-    const label = `${date} — ${escH(autre.source||'Inconnu')} · ${escH((autre.contenu||'').substring(0,40))}…`;
+    const label = `${date} — ${escH(autre.titre||'Inconnu')} · ${escH((autre.contenu||'').substring(0,40))}…`;
     return `<a class="fiche-link" onclick="goToRapport('${autre.id}')">
       <span class="fl-type">Rapport ·</span> ${ficheLiee?escH(ficheLiee.nom)+' — ':''} ${label}
       ${peutSupprimer?`<span class="fl-del" onclick="event.stopPropagation();deleteRapportRapport('${l.id}')" title="Supprimer ce lien">×</span>`:''}
@@ -362,7 +362,7 @@ function buildRapportLiensHTML(r){
       ${dispo.map(x=>{
         const fiche = RENS.fiches.find(f=>f.id===x.fiche_id);
         const date  = x.created_at ? new Date(x.created_at).toLocaleDateString('fr-FR') : '';
-        const label = `${date} — ${x.source||'Inconnu'} · ${(x.contenu||'').substring(0,35)}…`;
+        const label = `${date} — ${x.titre||'Inconnu'} · ${(x.contenu||'').substring(0,35)}…`;
         return `<option value="r:${x.id}">${fiche?escH(fiche.nom)+' / ':''} ${escH(label)}</option>`;
       }).join('')}
     </optgroup>`;
@@ -458,7 +458,7 @@ function buildAddRapportFormHTML(ficheId){
   <div class="add-rapport" id="addrap-${ficheId}">
     <div style="font-family:'Eagle Lake',serif;font-size:.85rem;color:var(--green-dark);margin-bottom:.75rem;">Déposer un nouveau rapport</div>
     <div class="form-row">
-      <div class="field"><label>Source</label><input type="text" id="raf-src-${ficheId}" placeholder="Garde ou informateur..."></div>
+      <div class="field"><label>Titre</label><input type="text" id="raf-tit-${ficheId}" placeholder="Titre du rapport..."></div>
       <div class="field"><label>Fiabilité</label>
         <select id="raf-fib-${ficheId}">
           <option value="confirme">✅ Confirmée</option>
@@ -484,7 +484,7 @@ function buildEditRapportFormHTML(r){
   <div class="add-rapport" id="editrap-${r.id}" style="display:none;margin-top:.75rem;">
     <div style="font-family:'Eagle Lake',serif;font-size:.85rem;color:var(--green-dark);margin-bottom:.75rem;">Modifier le rapport</div>
     <div class="form-row">
-      <div class="field"><label>Source</label><input type="text" id="er-src-${r.id}" value="${escH(r.source||'')}" placeholder="Garde ou informateur..."></div>
+      <div class="field"><label>Titre</label><input type="text" id="er-tit-${r.id}" value="${escH(r.titre||'')}" placeholder="Titre du rapport..."></div>
       <div class="field"><label>Fiabilité</label>
         <select id="er-fib-${r.id}">
           <option value="confirme"${r.fiabilite==='confirme'?' selected':''}>✅ Confirmée</option>
@@ -661,13 +661,13 @@ async function saveEditFiche(id){
 // ── CRUD Rapports ────────────────────────────────────────────────────
 async function saveRapport(ficheId){
   if(!rensCanWrite())return;
-  const source   = document.getElementById('raf-src-'+ficheId).value.trim();
+  const titre    = document.getElementById('raf-tit-'+ficheId).value.trim();
   const fiabilite= document.getElementById('raf-fib-'+ficheId).value;
   const contenu  = document.getElementById('raf-cnt-'+ficheId).value.trim();
   const action   = document.getElementById('raf-act-'+ficheId).value.trim();
   if(!contenu){ alert('Le contenu est obligatoire.'); return; }
   const author=rensCurrentAuthor();
-  const payload={fiche_id: ficheId, source: source||null, fiabilite, contenu, action_recommandee: action||null};
+  const payload={fiche_id: ficheId, titre: titre||null, fiabilite, contenu, action_recommandee: action||null};
   const payloadWithAuthor={
     ...payload,
     created_by:session?.user?.id||null,
@@ -696,7 +696,7 @@ async function saveEditRapport(rapId){
   const contenu = document.getElementById('er-cnt-'+rapId)?.value.trim();
   if(!contenu){ alert('Le contenu est obligatoire.'); return; }
   const payload = {
-    source: document.getElementById('er-src-'+rapId)?.value.trim()||null,
+    titre: document.getElementById('er-tit-'+rapId)?.value.trim()||null,
     fiabilite: document.getElementById('er-fib-'+rapId)?.value||'nonverif',
     contenu,
     action_recommandee: document.getElementById('er-act-'+rapId)?.value.trim()||null,
@@ -844,7 +844,7 @@ function rensRapportType(report){
 
 function rensRapportLabel(report){
   const fiche = rensFicheForRapport(report);
-  const source = report?.source||'Rapport';
+  const source = report?.titre||'Rapport';
   const date = report?.created_at ? new Date(report.created_at).toLocaleDateString('fr-FR') : '';
   return `${fiche?.nom||'Fiche inconnue'} — ${source}${date?` — ${date}`:''}`;
 }
@@ -1027,7 +1027,7 @@ function rensRenderCarte(){
         reportId: node.report_id,
         x: Number.isFinite(Number(node.x)) ? Number(node.x) : rensDefaultMapPosition(index).x,
         y: Number.isFinite(Number(node.y)) ? Number(node.y) : rensDefaultMapPosition(index).y,
-        label: `${fiche?.nom||'Fiche'}\n${report?.source||'Rapport'}`,
+        label: `${fiche?.nom||'Fiche'}\n${report?.titre||'Rapport'}`,
         title: rensRapportLabel(report),
         shape: 'box',
         color:{

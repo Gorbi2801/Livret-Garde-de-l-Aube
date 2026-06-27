@@ -118,7 +118,7 @@ body{background:#1C1A18;font-family:'IM Fell English',Georgia,serif;font-size:16
 .rapport-acc-chevron{font-size:.9rem;color:var(--ink-faint);transition:transform .2s;flex-shrink:0;}
 .rapport-accordion.open .rapport-acc-chevron{transform:rotate(90deg);}
 .rapport-acc-date{font-family:'Eagle Lake',serif;font-size:.75rem;color:var(--ink-faint);white-space:nowrap;}
-.rapport-acc-source{font-family:'Eagle Lake',serif;font-size:.82rem;color:var(--green-dark);}
+.rapport-acc-titre{font-family:'Eagle Lake',serif;font-size:.82rem;color:var(--green-dark);}
 .rapport-acc-preview{font-size:.82rem;font-style:italic;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
 .rapport-acc-author{font-size:.82rem;color:var(--ink-mid);font-style:italic;white-space:nowrap;}
 .rapport-acc-body{display:none;padding:.75rem .85rem;border-top:1px solid var(--border-g);}
