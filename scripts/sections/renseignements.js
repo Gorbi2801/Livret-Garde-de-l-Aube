@@ -199,7 +199,7 @@ function buildFicheHTML(f){
       <div class="fiche-left">
         <span class="fiche-chevron">▶</span>
         <div>
-          <div class="fiche-nom">${escH(f.nom)}</div>
+          <div class="fiche-nom">${escH(f.nom)}${raps.length>0?`<span style="display:inline-block;margin-left:.5rem;padding:.05rem .45rem;font-size:.72rem;font-family:'Eagle Lake',serif;background:var(--green-dark);color:var(--gold-light);border-radius:2px;vertical-align:middle;">${raps.length}</span>`:''}</div>
         </div>
       </div>
       <div class="fiche-badges">
