@@ -276,7 +276,7 @@ function buildRelationsHTML(f, rels){
 function buildRapportHTML(r){
   const peutModifier = rensCanEditOwn(r);
   const peutSupprimer = rensCanDelete();
-  const ficheLabel = {confirme:'✅ Confirmée', nonverif:'⚠ Non vérifiée', urgente:'🔴 Urgente'}[r.fiabilite]||r.fiabilite;
+  const ficheLabel = {confirme:'✅ Confirmée', nonverif:'⚠ Non vérifiée', urgente:'🔴 Urgente', fausse:'❌ Prouvée fausse'}[r.fiabilite]||r.fiabilite;
   const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR') : '';
   const preview = (r.contenu||'').substring(0,60)+(r.contenu&&r.contenu.length>60?'…':'');
   const author = rensAuthorLabel(r);
@@ -463,6 +463,7 @@ function buildAddRapportFormHTML(ficheId){
         <select id="raf-fib-${ficheId}">
           <option value="confirme">✅ Confirmée</option>
           <option value="nonverif" selected>⚠ Non vérifiée</option>
+          <option value="fausse">❌ Prouvée fausse</option>
           <option value="urgente">🔴 Urgente</option>
         </select>
       </div>
@@ -489,6 +490,7 @@ function buildEditRapportFormHTML(r){
           <option value="confirme"${r.fiabilite==='confirme'?' selected':''}>✅ Confirmée</option>
           <option value="nonverif"${r.fiabilite==='nonverif'?' selected':''}>⚠ Non vérifiée</option>
           <option value="urgente"${r.fiabilite==='urgente'?' selected':''}>🔴 Urgente</option>
+          <option value="fausse"${r.fiabilite==='fausse'?' selected':''}>❌ Prouvée fausse</option>
         </select>
       </div>
     </div>
