@@ -60,6 +60,7 @@ async function doLogin(){
 }
 
 async function doLogout(){
+  if(typeof window.stopRealtime==='function')window.stopRealtime();
   await window.GrimoireSupabase.auth.signOut();
   setLoggedOutUI();
   toast('Déconnexion effectuée.');
@@ -120,6 +121,7 @@ async function loadCurrentGarde(userId){
 }
 
 function setLoggedOutUI(){
+  if(typeof window.stopRealtime==='function')window.stopRealtime();
   session=null;
   const userInput=document.getElementById('loginUser');
   const passInput=document.getElementById('loginPass');
@@ -230,6 +232,7 @@ async function prepareAuthorizedApp(){
   activateFirstAllowedSection();
   await loadAccessibleSections();
   renderInvHistory();
+  if(typeof window.startRealtime==='function')window.startRealtime();
 }
 
 function navSectionForButton(btn){
