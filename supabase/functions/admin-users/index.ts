@@ -16,6 +16,9 @@ const SECTION_KEYS = [
   'inventaire',
   'lois',
   'presences',
+  'agenda',
+  'patrouilles',
+  'carte',
   'missives',
   'renseignements',
 ];

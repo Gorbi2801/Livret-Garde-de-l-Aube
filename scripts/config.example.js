@@ -2,9 +2,6 @@ window.GrimoireConfig = Object.freeze({
   supabaseUrl: 'https://PROJECT_REF.supabase.co',
   supabaseKey: 'sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
   authEmailDomain: 'grimoire.invalid',
-  discordPresenceWebhook: 'DISCORD_WEBHOOK_URL',
-  discordRenseignementWebhook: 'DISCORD_WEBHOOK_URL',
-  discordAgendaWebhook: 'DISCORD_WEBHOOK_URL',
   sections: Object.freeze([
     'citoyens',
     'biblio',

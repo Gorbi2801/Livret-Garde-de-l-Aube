@@ -123,42 +123,6 @@ function agendaEventOrganizer(event){
   return grade&&grade!=='—'?`${name} (${grade})`:name;
 }
 
-function agendaDiscordDate(value){
-  if(!value)return '—';
-  const d=new Date(value);
-  if(Number.isNaN(d.getTime()))return '—';
-  return d.toLocaleString('fr-FR',{weekday:'long',day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
-}
-
-async function notifyDiscordAgenda(event){
-  const url=window.GrimoireConfig?.discordAgendaWebhook;
-  if(!url||url==='DISCORD_WEBHOOK_URL')return;
-
-  const organizer=agendaEventOrganizer(event);
-  const lines=[
-    '<:aube:1516926588359540856> **Nouvel événement ajouté à l’agenda**',
-    '-# *Un nouveau rendez-vous vient d’être inscrit au programme de la Garde.*',
-    `> **Titre :** ${event.title||'Sans titre'}`,
-    `> **Type :** ${event.type||'Événement'} · **Statut :** ${event.status||'Prévu'}`,
-    `> **Début :** ${agendaDiscordDate(event.starts_at)}`,
-    `> **Fin :** ${agendaDiscordDate(event.ends_at)}`,
-    `> **Lieu :** ${event.location||'Non renseigné'}`,
-    `> **Organisateur :** ${organizer}`,
-  ];
-  if(event.description)lines.push(`\n${event.description.slice(0,450)}${event.description.length>450?'...':''}`);
-  lines.push('\nConsultez l’agenda du grimoire pour les détails et les changements éventuels.');
-
-  try{
-    await fetch(url,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({content:lines.join('\n')}),
-    });
-  }catch(error){
-    console.warn('[Discord] Notification agenda non envoyée.', error);
-  }
-}
-
 async function loadAgenda(){
   if(!session)return;
   const msg=document.getElementById('agendaMsg');
@@ -435,11 +399,13 @@ async function saveAgendaEvent(){
       const { data, error } = await window.GrimoireSupabase
         .from('mk_agenda_events')
         .insert(payload)
-        .select('id,title,description,location,type,status,starts_at,ends_at,organizer_name,organizer_grade')
+        .select('id')
         .single();
       if(error)throw error;
       savedId=data?.id||null;
-      if(data)await notifyDiscordAgenda(data);
+      if(savedId&&typeof window.notifyDiscord==='function'){
+        await window.notifyDiscord('agenda_created',{eventId:savedId});
+      }
     }
     agendaState.selectedId=savedId;
     agendaState.cursor=new Date(startsAt);

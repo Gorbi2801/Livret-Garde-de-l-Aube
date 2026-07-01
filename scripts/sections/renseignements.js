@@ -563,33 +563,8 @@ function buildNewFicheFormHTML(){
 
 // ── Notification Discord ─────────────────────────────────────────────
 async function notifyDiscordRenseignement(type, detail){
-  const url = window.GrimoireConfig?.discordRenseignementWebhook;
-  if(!url) return;
-
-  const prenom     = session?.garde?.prenom || '';
-  const nom        = session?.garde?.nom    || '';
-  const grade      = session?.garde?.grade  || session?.grade || '';
-  const nomComplet = [prenom, nom].filter(Boolean).join(' ') || session?.displayName || 'Garde inconnu';
-  const auteur     = grade ? `${nomComplet} *(${grade})*` : nomComplet;
-
-  const isFiche    = type === 'fiche';
-  const titre      = isFiche
-    ? '<:corbeau:1517815921258008697> **Nouvelle fiche versée aux archives**'
-    : '<:corbeau:1517815921258008697> **Nouveau rapport déposé**';
-  const sousTitre  = isFiche
-    ? `-# *Une nouvelle fiche vient d'être versée aux archives de Fort-Aube.*`
-    : `-# *Un nouveau rapport de renseignement vient d'être déposé.*`;
-  const detailLine = detail ? `\n> **${isFiche ? 'Fiche' : 'Rapport'} :** ${detail}` : '';
-
-  const content = `${titre}\n${sousTitre}${detailLine}\n> **Par :** ${auteur}\n\n<:aube:1516926588359540856> Consultez les archives et transmettez tout élément complémentaire à votre supérieur.`;
-
-  try{
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content })
-    });
-  }catch(e){ console.warn('Discord webhook renseignement :', e); }
+  if(typeof window.notifyDiscord!=='function')return;
+  await window.notifyDiscord(type==='fiche'?'renseignement_fiche':'renseignement_rapport',{detail});
 }
 
 // ── CRUD Fiches ──────────────────────────────────────────────────────
@@ -710,7 +685,7 @@ async function saveRapport(ficheId){
     try{await sbPost('mk_rens_rapports',payload);}
     catch(fallbackError){ alert('Erreur : '+fallbackError.message); return; }
   }
-  await notifyDiscordRenseignement('rapport', titre||source||'Sans titre');
+  await notifyDiscordRenseignement('rapport', titre||'Sans titre');
   await rensLoad();
 }
 

@@ -181,28 +181,8 @@ function renderPresenceHistory(){
 
 // ── Notification Discord ─────────────────────────────────────────────
 async function notifyDiscord(type) {
-  const webhookUrl = window.GrimoireConfig?.discordPresenceWebhook;
-  if (!webhookUrl || webhookUrl === 'DISCORD_WEBHOOK_URL') return;
-
-  const garde      = session?.garde;
-  const prenom     = garde?.prenom || '';
-  const nom        = garde?.nom    || '';
-  const grade      = session?.grade || '';
-  const nomComplet = [prenom, nom].filter(Boolean).join(' ') || session?.displayName || 'Garde inconnu';
-
-  const content = type === 'start'
-    ? `🟢 **${nomComplet}** *(${grade})* a pris son service.`
-    : `🔴 **${nomComplet}** *(${grade})* est en fin de service.`;
-
-  try {
-    await fetch(webhookUrl, {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({ content }),
-    });
-  } catch (e) {
-    console.warn('[Discord] Notification de présence non envoyée.', e);
-  }
+  if(typeof window.notifyDiscord!=='function')return;
+  await window.notifyDiscord(type==='start'?'presence_start':'presence_stop');
 }
 
 async function startPresence(){
@@ -260,21 +240,11 @@ async function forceStopPresence(userId, nomGarde){
 }
 
 async function notifyDiscordForceStop(nomGarde){
-  const webhookUrl = window.GrimoireConfig?.discordPresenceWebhook;
-  if (!webhookUrl || webhookUrl === 'DISCORD_WEBHOOK_URL') return;
   // Récupérer le grade du garde depuis gardeRows si disponible
   const gardeRow = typeof gardeRows !== 'undefined'
     ? gardeRows.find(r => (r.prenom+' '+r.nom).trim() === nomGarde.trim())
     : null;
   const grade = gardeRow?.grade || '';
-  const content = `🔴 **${nomGarde}**${grade?' *('+grade+')*':''} a été mis hors service.`;
-  try{
-    await fetch(webhookUrl, {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({ content }),
-    });
-  }catch(e){
-    console.warn('[Discord] Notification force-stop non envoyée.', e);
-  }
+  if(typeof window.notifyDiscord!=='function')return;
+  await window.notifyDiscord('presence_force_stop',{targetName:nomGarde,targetGrade:grade});
 }
