@@ -15,6 +15,7 @@ const RENS = {
   activeTab: 'lieux',
   searchQ:   '',
   filterStatut: '',
+  archivesOpen: false,
   mapReady: true,
   mapPickerType: 'all',
   mapLinkMode: false,
@@ -41,6 +42,7 @@ function showTab(id, el){
   if(addWrap) addWrap.style.display = id==='carte' ? 'none' : '';
   if(id==='carte') rensRenderCarte();
   else renderTab(id);
+  renderArchives();
 }
 
 function toggleFiche(id){
@@ -64,6 +66,23 @@ function toggleRelForm(id){
 }
 
 function goToFiche(ficheId, tab){
+  const fiche = RENS.fiches.find(f=>f.id===ficheId);
+  if(fiche && rensIsArchived(fiche)){
+    RENS.archivesOpen = true;
+    renderArchives();
+    setTimeout(()=>{
+      const archives = document.getElementById('rens-archives');
+      const target = document.getElementById('fiche-'+ficheId);
+      if(archives) archives.scrollIntoView({behavior:'smooth', block:'start'});
+      if(!target) return;
+      target.classList.add('open');
+      const detail = document.getElementById('detail-fiche-'+ficheId);
+      if(detail) detail.style.display = 'table-row';
+      target.classList.add('highlight');
+      setTimeout(()=>target.classList.remove('highlight'), 1500);
+    }, 120);
+    return;
+  }
   const tabBtns = document.querySelectorAll('#page-renseignements .tab');
   const idx = ['lieux','individus','groupes'].indexOf(tab);
   if(idx >= 0 && tabBtns[idx]) showTab(tab, tabBtns[idx]);
@@ -143,15 +162,18 @@ function rensRenderAll(){
   rensRenderStats();
   if(RENS.activeTab==='carte') rensRenderCarte();
   else renderTab(RENS.activeTab);
+  renderArchives();
 }
 
 function rensRenderStats(){
-  const total     = RENS.fiches.length;
-  const lieux     = RENS.fiches.filter(f=>f.type==='lieux').length;
-  const individus = RENS.fiches.filter(f=>f.type==='individus').length;
-  const groupes   = RENS.fiches.filter(f=>f.type==='groupes').length;
-  const urgents   = RENS.fiches.filter(f=>f.urgente).length;
-  const nbRap     = RENS.rapports.length;
+  const activeFiches = RENS.fiches.filter(f=>!rensIsArchived(f));
+  const archivedCount = RENS.fiches.length - activeFiches.length;
+  const activeIds = new Set(activeFiches.map(f=>f.id));
+  const lieux     = activeFiches.filter(f=>f.type==='lieux').length;
+  const individus = activeFiches.filter(f=>f.type==='individus').length;
+  const groupes   = activeFiches.filter(f=>f.type==='groupes').length;
+  const urgents   = activeFiches.filter(f=>f.urgente).length;
+  const nbRap     = RENS.rapports.filter(r=>activeIds.has(r.fiche_id)).length;
   const statsEl   = document.getElementById('rens-stats');
   if(!statsEl) return;
   statsEl.innerHTML = `
@@ -159,11 +181,15 @@ function rensRenderStats(){
     <div class="stat">Individus : <strong>${individus}</strong></div>
     <div class="stat">Groupes : <strong>${groupes}</strong></div>
     ${urgents>0?`<div class="stat" style="color:#7A1010;">🔴 Urgents : <strong>${urgents}</strong></div>`:''}
-    <div class="stat">Rapports total : <strong>${nbRap}</strong></div>`;
+    <div class="stat">Rapports actifs : <strong>${nbRap}</strong></div>
+    ${archivedCount>0?`<div class="stat">Archives : <strong>${archivedCount}</strong></div>`:''}`;
 }
 
-function rensFilteredFiches(type){
-  let fiches = type ? RENS.fiches.filter(f=>f.type===type) : [...RENS.fiches];
+function rensIsArchived(fiche){
+  return !!fiche?.archived_at;
+}
+
+function rensFilterFicheList(fiches){
   if(RENS.searchQ){
     const q = RENS.searchQ.toLowerCase();
     fiches = fiches.filter(f=>f.nom.toLowerCase().includes(q));
@@ -180,6 +206,15 @@ function rensFilteredFiches(type){
   });
 
   return fiches;
+}
+
+function rensFilteredFiches(type){
+  let fiches = RENS.fiches.filter(f=>!rensIsArchived(f) && (!type || f.type===type));
+  return rensFilterFicheList(fiches);
+}
+
+function rensFilteredArchives(){
+  return rensFilterFicheList(RENS.fiches.filter(rensIsArchived));
 }
 
 function renderTab(type){
@@ -203,8 +238,10 @@ function renderTab(type){
 function buildFicheHTML(f){
   const raps = RENS.rapports.filter(r=>r.fiche_id===f.id);
   const rels = RENS.relations.filter(r=>r.fiche_source===f.id || r.fiche_cible===f.id);
+  const archived = rensIsArchived(f);
 
   const badgeUrgente = f.urgente ? `<span class="badge badge-urgente">🔴 Urgente</span>` : '';
+  const badgeArchived = archived ? `<span class="badge badge-archive">Archivée</span>` : '';
   const badgeStatut  = f.statut && f.statut!=='neutre'
     ? `<span class="badge badge-${f.statut==='surveillance'?'surveille':f.statut==='recherche'?'recherche':'neutralise'}">${f.statut==='surveillance'?'Surveillance active':f.statut==='recherche'?'Recherché':'Neutralisé'}</span>` : '';
 
@@ -224,14 +261,16 @@ function buildFicheHTML(f){
   const peutSupprimer = rensCanDelete();
 
   return `
-  <tr class="rens-row${f.urgente?' urgente':''}" id="fiche-${f.id}" data-id="${f.id}" data-tab="${f.type}" onclick="toggleFiche('fiche-${f.id}')">
+  <tr class="rens-row${f.urgente?' urgente':''}${archived?' archived':''}" id="fiche-${f.id}" data-id="${f.id}" data-tab="${f.type}" onclick="toggleFiche('fiche-${f.id}')">
     <td class="rens-row-chevron"><span class="fiche-chevron">▶</span></td>
     <td class="rens-row-name">${escH(f.nom)}</td>
-    <td>${badgeStatut || '<span style="color:var(--ink-faint);font-style:italic;">Neutre</span>'}</td>
+    <td>${badgeArchived}${badgeStatut || '<span style="color:var(--ink-faint);font-style:italic;">Neutre</span>'}</td>
     <td class="rens-row-count">${raps.length>0?raps.length:'—'}</td>
     <td class="rens-row-actions" onclick="event.stopPropagation()">
       ${badgeUrgente}
-      ${peutModifier?`<button class="btn-sm" onclick="openEditFiche('${f.id}')">Modifier</button>`:''}
+      ${peutModifier&&!archived?`<button class="btn-sm" onclick="openEditFiche('${f.id}')">Modifier</button>`:''}
+      ${peutSupprimer&&!archived?`<button class="btn-sm" onclick="archiveRensFiche('${f.id}')">Archiver</button>`:''}
+      ${peutSupprimer&&archived?`<button class="btn-sm" onclick="unarchiveRensFiche('${f.id}')">Désarchiver</button>`:''}
       ${peutSupprimer?`<button class="btn-sm" style="color:#7A1010;" onclick="deleteFiche('${f.id}')">Suppr.</button>`:''}
     </td>
   </tr>
@@ -244,21 +283,63 @@ function buildFicheHTML(f){
         <div class="rapports-section">
           <div class="rapports-title">
             Rapports &amp; renseignements
-            ${peutAjouter?`<button class="btn-sm" onclick="toggleAdd('addrap-${f.id}')">+ Déposer un rapport</button>`:''}
+            ${peutAjouter&&!archived?`<button class="btn-sm" onclick="toggleAdd('addrap-${f.id}')">+ Déposer un rapport</button>`:''}
           </div>
           ${raps.length===0?'<p style="font-style:italic;color:var(--ink-faint);font-size:.92rem;">Aucun rapport déposé.</p>':''}
           ${rapsHTML}
-          ${peutAjouter?buildAddRapportFormHTML(f.id):''}
+          ${peutAjouter&&!archived?buildAddRapportFormHTML(f.id):''}
         </div>
-        ${peutModifier?buildAddFicheNotes(f):''}
+        ${peutModifier&&!archived?buildAddFicheNotes(f):''}
       </div>
     </td>
   </tr>`;
 }
 
+function toggleRensArchives(){
+  RENS.archivesOpen = !RENS.archivesOpen;
+  renderArchives();
+}
+
+function renderArchives(){
+  const root = document.getElementById('rens-archives');
+  if(!root)return;
+  const allArchived = RENS.fiches.filter(rensIsArchived);
+  const fiches = rensFilteredArchives();
+  if(!allArchived.length){
+    root.innerHTML = '';
+    return;
+  }
+  root.innerHTML = `
+    <div class="rens-archives-head" onclick="toggleRensArchives()">
+      <div>
+        <strong>Archives</strong>
+        <span>${fiches.length}/${allArchived.length} fiche${allArchived.length>1?'s':''}</span>
+      </div>
+      <button class="btn-sm" onclick="event.stopPropagation();toggleRensArchives()">${RENS.archivesOpen?'Refermer':'Ouvrir'}</button>
+    </div>
+    <div class="rens-archives-body" ${RENS.archivesOpen?'':'hidden'}>
+      ${fiches.length?`
+      <div class="rens-table-wrap">
+        <table class="rens-table">
+          <thead>
+            <tr>
+              <th class="rens-th-chevron"></th>
+              <th>Nom</th>
+              <th>Statut</th>
+              <th class="rens-th-count">Rapports</th>
+              <th class="rens-th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="fiches-list">${fiches.map(f=>buildFicheHTML(f)).join('')}</tbody>
+        </table>
+      </div>`:'<p class="rens-archives-empty">Aucune archive ne correspond aux filtres actifs.</p>'}
+    </div>`;
+}
+
 function buildRelationsHTML(f, rels){
-  const peutModifier = rensCanWrite();
-  const peutSupprimer = rensCanDelete();
+  const archived = rensIsArchived(f);
+  const peutModifier = rensCanWrite() && !archived;
+  const peutSupprimer = rensCanDelete() && !archived;
   const linksHTML = rels.map(rel=>{
     const otherId = rel.fiche_source===f.id ? rel.fiche_cible : rel.fiche_source;
     const relId   = rel.id;
@@ -274,7 +355,7 @@ function buildRelationsHTML(f, rels){
   // Options disponibles pour le select (toutes fiches sauf soi-même et déjà liées)
   const dejalie = rels.map(r=>r.fiche_source===f.id?r.fiche_cible:r.fiche_source);
   const opts = ['lieux','individus','groupes'].map(type=>{
-    const dispo = RENS.fiches.filter(x=>x.type===type && x.id!==f.id && !dejalie.includes(x.id));
+    const dispo = RENS.fiches.filter(x=>!rensIsArchived(x) && x.type===type && x.id!==f.id && !dejalie.includes(x.id));
     if(!dispo.length) return '';
     return `<optgroup label="${type==='lieux'?'Lieux':type==='individus'?'Individus':'Groupes'}">
       ${dispo.map(x=>`<option value="${x.id}">${escH(x.nom)}</option>`).join('')}
@@ -304,8 +385,9 @@ function buildRelationsHTML(f, rels){
 }
 
 function buildRapportHTML(r){
-  const peutModifier = rensCanEditOwn(r);
-  const peutSupprimer = rensCanDelete();
+  const archived = rensReportIsArchived(r);
+  const peutModifier = rensCanEditOwn(r) && !archived;
+  const peutSupprimer = rensCanDelete() && !archived;
   const ficheLabel = {confirme:'✅ Confirmée', nonverif:'⚠ Non vérifiée', urgente:'🔴 Urgente', fausse:'❌ Invalidée'}[r.fiabilite]||r.fiabilite;
   const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR') : '';
   const preview = (r.contenu||'').substring(0,60)+(r.contenu&&r.contenu.length>60?'…':'');
@@ -342,8 +424,9 @@ function buildRapportHTML(r){
 
 // ── Liens rapport → fiches tierces ───────────────────────────────────
 function buildRapportLiensHTML(r){
-  const peutModifier  = rensCanWrite();
-  const peutSupprimer = rensCanDelete();
+  const archived = rensReportIsArchived(r);
+  const peutModifier  = rensCanWrite() && !archived;
+  const peutSupprimer = rensCanDelete() && !archived;
 
   // ── Liens vers fiches ───────────────────────────────────────────────
   const liens = RENS.rapportLiens.filter(l=>l.rapport_id===r.id);
@@ -379,7 +462,7 @@ function buildRapportLiensHTML(r){
   const dejalieRapports = rapliens.map(l=>l.rapport_a===r.id?l.rapport_b:l.rapport_a);
 
   const optsFiches = ['lieux','individus','groupes'].map(type=>{
-    const dispo = RENS.fiches.filter(x=>x.type===type && x.id!==r.fiche_id && !dejalieFiches.includes(x.id));
+    const dispo = RENS.fiches.filter(x=>!rensIsArchived(x) && x.type===type && x.id!==r.fiche_id && !dejalieFiches.includes(x.id));
     if(!dispo.length) return '';
     return `<optgroup label="${type==='lieux'?'Lieux':type==='individus'?'Individus':'Groupes'}">
       ${dispo.map(x=>`<option value="f:${x.id}">${escH(x.nom)}</option>`).join('')}
@@ -387,7 +470,7 @@ function buildRapportLiensHTML(r){
   }).join('');
 
   const optsRapports = (()=>{
-    const dispo = RENS.rapports.filter(x=>x.id!==r.id && !dejalieRapports.includes(x.id));
+    const dispo = RENS.rapports.filter(x=>!rensReportIsArchived(x) && x.id!==r.id && !dejalieRapports.includes(x.id));
     if(!dispo.length) return '';
     return `<optgroup label="Rapports">
       ${dispo.map(x=>{
@@ -423,6 +506,8 @@ function buildRapportLiensHTML(r){
 }
 
 async function addRapportLien(rapportId){
+  const report = RENS.rapports.find(r=>r.id===rapportId);
+  if(!report || rensReportIsArchived(report))return;
   const sel = document.getElementById('rl-sel-'+rapportId);
   const val = sel?.value;
   if(!val){ toast('Sélectionne un élément.'); return; }
@@ -439,6 +524,9 @@ async function addRapportLien(rapportId){
 }
 
 async function deleteRapportLien(lienId){
+  const lien = RENS.rapportLiens.find(l=>l.id===lienId);
+  const report = RENS.rapports.find(r=>r.id===lien?.rapport_id);
+  if(report && rensReportIsArchived(report))return;
   if(!confirm('Supprimer ce lien ?')) return;
   try{
     await sbDelete('mk_rens_rapport_liens',`?id=eq.${lienId}`);
@@ -447,6 +535,10 @@ async function deleteRapportLien(lienId){
 }
 
 async function deleteRapportRapport(lienId){
+  const lien = RENS.rapportRapport.find(l=>l.id===lienId);
+  const reportA = RENS.rapports.find(r=>r.id===lien?.rapport_a);
+  const reportB = RENS.rapports.find(r=>r.id===lien?.rapport_b);
+  if((reportA && rensReportIsArchived(reportA)) || (reportB && rensReportIsArchived(reportB)))return;
   if(!confirm('Supprimer ce lien ?')) return;
   try{
     await sbDelete('mk_rens_rapport_rapport',`?id=eq.${lienId}`);
@@ -520,7 +612,7 @@ function rensAttachmentInputHTML(inputId){
 
 function buildRapportAttachmentsHTML(r){
   const attachments = rensAttachmentsForRapport(r.id);
-  const canRemove = rensCanEditOwn(r);
+  const canRemove = rensCanEditOwn(r) && !rensReportIsArchived(r);
   if(!attachments.length)return '';
   return `
   <div class="rens-attachments">
@@ -638,7 +730,7 @@ async function openRensAttachment(attId){
 async function deleteRensAttachment(attId){
   const att = RENS.attachments.find(x=>x.id===attId);
   const report = RENS.rapports.find(r=>r.id===att?.rapport_id);
-  if(!att || !report || !rensCanEditOwn(report))return;
+  if(!att || !report || rensReportIsArchived(report) || !rensCanEditOwn(report))return;
   if(!confirm('Supprimer cette pièce jointe ?'))return;
   try{
     await rensRemoveStorageFiles(att.bucket_id || RENS_ATTACHMENT_BUCKET, [att.path]);
@@ -788,6 +880,38 @@ async function deleteFiche(id){
   await rensLoad();
 }
 
+async function archiveRensFiche(id){
+  if(!rensCanDelete())return;
+  const fiche = RENS.fiches.find(f=>f.id===id);
+  if(!fiche || rensIsArchived(fiche))return;
+  if(!confirm(`Archiver la fiche "${fiche.nom}" ? Elle sera déplacée dans les archives avec ses rapports.`))return;
+  try{
+    const { error } = await window.GrimoireSupabase.rpc('archive_rens_fiche',{p_fiche_id:id});
+    if(error)throw error;
+    RENS.archivesOpen = true;
+    await rensLoad();
+    toast('Fiche archivée.');
+  }catch(error){
+    alert('Erreur : '+error.message);
+  }
+}
+
+async function unarchiveRensFiche(id){
+  if(!rensCanDelete())return;
+  const fiche = RENS.fiches.find(f=>f.id===id);
+  if(!fiche || !rensIsArchived(fiche))return;
+  if(!confirm(`Désarchiver la fiche "${fiche.nom}" ?`))return;
+  try{
+    const { error } = await window.GrimoireSupabase.rpc('unarchive_rens_fiche',{p_fiche_id:id});
+    if(error)throw error;
+    RENS.archivesOpen = true;
+    await rensLoad();
+    toast('Fiche désarchivée.');
+  }catch(error){
+    alert('Erreur : '+error.message);
+  }
+}
+
 // ── Modification fiche — formulaire inline ────────────────────────
 function buildEditFicheFormHTML(f){
   return `
@@ -820,7 +944,7 @@ function buildEditFicheFormHTML(f){
 
 function openEditFiche(id){
   const f = RENS.fiches.find(x=>x.id===id);
-  if(!f || !rensCanEditOwn(f))return;
+  if(!f || rensIsArchived(f) || !rensCanEditOwn(f))return;
   const formEl = document.getElementById('editform-'+id);
   if(formEl){ formEl.style.display = formEl.style.display==='none'?'block':'none'; return; }
   // Formulaire pas encore injecté — rare, mais fallback sécurisé
@@ -834,7 +958,7 @@ function openEditFiche(id){
 
 async function saveEditFiche(id){
   const fiche = RENS.fiches.find(f=>f.id===id);
-  if(!fiche || !rensCanEditOwn(fiche))return;
+  if(!fiche || rensIsArchived(fiche) || !rensCanEditOwn(fiche))return;
   const nom = document.getElementById('ef-nom-'+id)?.value.trim();
   if(!nom){ alert('Le nom est obligatoire.'); return; }
   const payload = {
@@ -851,6 +975,11 @@ async function saveEditFiche(id){
 // ── CRUD Rapports ────────────────────────────────────────────────────
 async function saveRapport(ficheId){
   if(!rensCanWrite())return;
+  const fiche = RENS.fiches.find(f=>f.id===ficheId);
+  if(!fiche || rensIsArchived(fiche)){
+    alert('Cette fiche est archivée. Désarchive-la avant d’ajouter un rapport.');
+    return;
+  }
   const titre    = document.getElementById('raf-tit-'+ficheId).value.trim();
   const fiabilite= document.getElementById('raf-fib-'+ficheId).value;
   const contenu  = document.getElementById('raf-cnt-'+ficheId).value.trim();
@@ -889,14 +1018,14 @@ async function saveRapport(ficheId){
 
 function openEditRapport(rapId){
   const report = RENS.rapports.find(r=>r.id===rapId);
-  if(!report || !rensCanEditOwn(report))return;
+  if(!report || rensReportIsArchived(report) || !rensCanEditOwn(report))return;
   const form = document.getElementById('editrap-'+rapId);
   if(form)form.style.display = form.style.display==='none' ? 'block' : 'none';
 }
 
 async function saveEditRapport(rapId){
   const report = RENS.rapports.find(r=>r.id===rapId);
-  if(!report || !rensCanEditOwn(report))return;
+  if(!report || rensReportIsArchived(report) || !rensCanEditOwn(report))return;
   const contenu = document.getElementById('er-cnt-'+rapId)?.value.trim();
   if(!contenu){ alert('Le contenu est obligatoire.'); return; }
   const payload = {
@@ -917,6 +1046,8 @@ async function saveEditRapport(rapId){
 
 async function deleteRapport(rapId, ficheId){
   if(!rensCanDelete())return;
+  const report = RENS.rapports.find(r=>r.id===rapId);
+  if(!report || rensReportIsArchived(report))return;
   if(!confirm('Supprimer ce rapport ?')) return;
   const attachments = rensAttachmentsForRapport(rapId);
   try{
@@ -938,6 +1069,8 @@ async function deleteRapport(rapId, ficheId){
 // ── CRUD Relations ───────────────────────────────────────────────────
 async function addRelation(ficheSourceId){
   if(!rensCanWrite())return;
+  const source = RENS.fiches.find(f=>f.id===ficheSourceId);
+  if(!source || rensIsArchived(source))return;
   const sel = document.getElementById('relsel-'+ficheSourceId);
   const cibleId = sel ? sel.value : '';
   if(!cibleId){ alert('Sélectionne une fiche cible.'); return; }
@@ -948,6 +1081,10 @@ async function addRelation(ficheSourceId){
 
 async function deleteRelation(relId, ficheId){
   if(!rensCanDelete())return;
+  const rel = RENS.relations.find(r=>r.id===relId);
+  const source = RENS.fiches.find(f=>f.id===rel?.fiche_source);
+  const target = RENS.fiches.find(f=>f.id===rel?.fiche_cible);
+  if((source && rensIsArchived(source)) || (target && rensIsArchived(target)))return;
   if(!confirm('Supprimer ce lien ?')) return;
   try{await sbDelete('mk_rens_relations',`?id=eq.${relId}`);}
   catch(error){ alert('Erreur : '+error.message); return; }
@@ -962,11 +1099,13 @@ function rensSearch(q){
   RENS.searchQ = q;
   if(RENS.activeTab==='carte') rensRenderCarte();
   else renderTab(RENS.activeTab);
+  renderArchives();
 }
 function rensFilter(v){
   RENS.filterStatut = v==='Tous les statuts'?'':v;
   if(RENS.activeTab==='carte') rensRenderCarte();
   else renderTab(RENS.activeTab);
+  renderArchives();
 }
 
 // ── Init renseignements (appelé depuis init() Supabase) ───────────
@@ -1067,6 +1206,10 @@ function rensFicheForRapport(report){
   return RENS.fiches.find(f=>f.id===report?.fiche_id)||null;
 }
 
+function rensReportIsArchived(report){
+  return rensIsArchived(rensFicheForRapport(report));
+}
+
 function rensRapportType(report){
   return rensFicheForRapport(report)?.type||'autres';
 }
@@ -1090,6 +1233,7 @@ function rensMapTypeColors(type){
 function rensMapReportListHtml(){
   const spawned = new Set(RENS.mapNodes.map(node=>node.report_id).filter(Boolean));
   const reports = RENS.rapports
+    .filter(report=>!rensReportIsArchived(report))
     .filter(report=>RENS.mapPickerType==='all'||rensRapportType(report)===RENS.mapPickerType)
     .filter(report=>!spawned.has(report.id));
   if(!reports.length)return '<p class="sa-empty">Aucun rapport disponible pour ce type.</p>';
@@ -1101,7 +1245,7 @@ function rensMapReportListHtml(){
 
 function rensMapFicheListHtml(){
   const spawned = new Set(RENS.mapNodes.map(node=>node.fiche_id).filter(Boolean));
-  const fiches = RENS.fiches.filter(f=>!spawned.has(f.id));
+  const fiches = RENS.fiches.filter(f=>!rensIsArchived(f) && !spawned.has(f.id));
   if(!fiches.length)return '<p class="sa-empty">Toutes les fiches sont déjà sur la carte.</p>';
   return fiches.map(f=>`<button type="button" class="rens-map-report-choice" onclick="rensSpawnMapFiche('${escJs(f.id)}')">
     <strong>${escH(f.nom)}</strong>
@@ -1291,9 +1435,17 @@ async function rensDeleteSelectedMapItem(){
 // ailleurs (fiche liée à un rapport, rapport lié à un rapport, fiche
 // liée à une fiche), un fil pointillé est tracé automatiquement entre
 // leurs cartes — sans action manuelle, et sans créer de ligne en base.
-function rensComputeAutoEdges(){
+function rensActiveMapNodes(){
+  return RENS.mapNodes.filter(node=>{
+    if(node.node_type === 'fiche')return !rensIsArchived(RENS.fiches.find(f=>f.id===node.fiche_id));
+    const report = RENS.rapports.find(r=>r.id===node.report_id);
+    return report && !rensReportIsArchived(report);
+  });
+}
+
+function rensComputeAutoEdges(mapNodes = RENS.mapNodes){
   const nodeByReport = {}, nodeByFiche = {};
-  RENS.mapNodes.forEach(n=>{
+  mapNodes.forEach(n=>{
     if(n.report_id) nodeByReport[n.report_id] = n.id;
     if(n.fiche_id)  nodeByFiche[n.fiche_id]   = n.id;
   });
@@ -1335,14 +1487,16 @@ function rensRenderCarte(){
     container.innerHTML = '<p class="rens-map-empty">Carte mentale non configurée côté Supabase. Lance le script supabase/sql/renseignements_map.sql.</p>';
     return;
   }
-  if(!RENS.mapNodes.length){
+  const mapNodes = rensActiveMapNodes();
+  if(!mapNodes.length){
     container.innerHTML = '<p class="rens-map-empty">Aucun rapport posé sur la carte mentale. Utilisez “Ajouter rapport” pour commencer.</p>';
     return;
   }
 
   container.innerHTML = '<p class="rens-map-empty">Préparation du tableau d\'enquête...</p>';
   rensLoadVisNetwork(()=>{
-    const nodes = new vis.DataSet(RENS.mapNodes.map((node,index)=>{
+    const activeNodeIds = new Set(mapNodes.map(node=>node.id));
+    const nodes = new vis.DataSet(mapNodes.map((node,index)=>{
       const isFiche = node.node_type === 'fiche';
       const selected = RENS.selectedMapNode===node.id;
       if(isFiche){
@@ -1378,7 +1532,9 @@ ${report?.titre||'Rapport'}`,
         font:{face:'serif',size:14,color:'#1c1a18',multi:true}, margin:12,
       };
     }));
-    const manualEdges = RENS.mapLinks.map(link=>({
+    const manualEdges = RENS.mapLinks.filter(link=>
+      activeNodeIds.has(link.source_node_id) && activeNodeIds.has(link.target_node_id)
+    ).map(link=>({
       id: link.id,
       from: link.source_node_id,
       to: link.target_node_id,
@@ -1386,7 +1542,7 @@ ${report?.titre||'Rapport'}`,
       width: RENS.selectedMapLink===link.id ? 4 : 2.2,
       smooth:{type:'curvedCW',roundness:0.12},
     }));
-    const autoEdges = rensComputeAutoEdges();
+    const autoEdges = rensComputeAutoEdges(mapNodes);
     const edges = new vis.DataSet([...manualEdges, ...autoEdges]);
 
     const options = {

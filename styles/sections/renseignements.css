@@ -44,6 +44,7 @@ body{background:#1C1A18;font-family:'IM Fell English',Georgia,serif;font-size:16
 .badge-surveille{background:rgba(139,94,0,.1);color:#6B4500;border-color:rgba(139,94,0,.4);}
 .badge-recherche{background:rgba(122,16,16,.1);color:#7A1010;border-color:rgba(122,16,16,.4);}
 .badge-neutralise{background:rgba(45,106,45,.1);color:#2D5A1A;border-color:rgba(45,106,45,.4);}
+.badge-archive{background:rgba(28,26,24,.08);color:var(--ink-mid);border-color:rgba(28,26,24,.35);margin-right:.35rem;}
 
 .fiche-body{display:none;padding:0;}
 .fiche.open .fiche-body{display:block;}
@@ -173,6 +174,9 @@ body{background:#1C1A18;font-family:'IM Fell English',Georgia,serif;font-size:16
 .rens-table tbody tr.rens-row td{padding:.5rem .75rem;vertical-align:middle;}
 .rens-table tbody tr.rens-row td:first-child{border-left:4px solid var(--gold);}
 .rens-table tbody tr.rens-row.urgente td:first-child{border-left-color:#7A1010;}
+.rens-table tbody tr.rens-row.archived{background:rgba(210,198,168,.48);}
+.rens-table tbody tr.rens-row.archived td:first-child{border-left-color:rgba(28,26,24,.38);}
+.rens-table tbody tr.rens-row.archived .rens-row-name{color:var(--ink-mid);}
 
 .rens-row-chevron{color:var(--ink-faint);font-size:.85rem;display:inline-block;transition:transform .2s;}
 .rens-table tr.rens-row.open .fiche-chevron{transform:rotate(90deg);display:inline-block;}
@@ -189,3 +193,14 @@ body{background:#1C1A18;font-family:'IM Fell English',Georgia,serif;font-size:16
   .rens-table .rens-th-count,.rens-table td.rens-row-count{display:none;}
   .rens-row-actions{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:flex-end;}
 }
+
+.rens-archives{margin-top:1.25rem;}
+.rens-archives:empty{display:none;}
+.rens-archives-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.7rem .85rem;border:1px solid var(--border-g);border-left:4px solid rgba(28,26,24,.38);background:rgba(210,198,168,.58);cursor:pointer;user-select:none;}
+.rens-archives-head:hover{background:rgba(210,198,168,.74);}
+.rens-archives-head strong{display:block;font-family:'Eagle Lake',serif;font-size:.9rem;letter-spacing:.08em;color:var(--green-dark);}
+.rens-archives-head span{display:block;margin-top:.12rem;color:var(--ink-mid);font-style:italic;font-size:.9rem;}
+.rens-archives-body{border:1px solid var(--border-g);border-top:none;background:rgba(237,230,214,.48);padding:.85rem;}
+.rens-archives-body[hidden]{display:none;}
+.rens-archives-body .rens-table-wrap{margin-bottom:0;}
+.rens-archives-empty{font-style:italic;color:var(--ink-faint);font-size:.92rem;}
