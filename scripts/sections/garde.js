@@ -211,7 +211,7 @@ function renderGardes(rows){
         <span style="color:var(--ink-faint);font-style:italic;font-size:1rem;">par ${recruteur}</span>
       </td>
       <td class="cell-meta"><span class="badge badge-tag">${esc(specialite)}</span></td>
-      ${showActions?`<td class="act">${canFollow?`<button class="btn-action btn-gold" onclick="openGardeSuivi('${r.id}')">Suivi</button>`:''}${canEdit?`${r.user_id&&typeof presenceIsActiveForUser==='function'&&presenceIsActiveForUser(r.user_id)?`<button class="btn-del" style="color:#7A1010;border-color:#7A1010;" onclick="forceStopPresence('${r.user_id}','${esc(r.prenom+(r.nom?' '+r.nom:''))}')">Hors service</button> `:''}` +
+      ${showActions?`<td class="act">${canFollow?`<button class="btn-action btn-gold" onclick="openGardeSuivi('${r.id}')">Suivi</button>`:''}${canEdit?`${r.user_id&&typeof presenceIsActiveForUser==='function'&&presenceIsActiveForUser(r.user_id)?`<button class="btn-del" style="color:#7A1010;border-color:#7A1010;" onclick="forceStopPresence('${r.user_id}','${escJs(r.prenom+(r.nom?' '+r.nom:''))}')">Hors service</button> `:''}` +
         `<button class="btn-del" onclick="toggleAbsenceGarde('${r.id}','${r.statut||'actif'}')">${r.statut==='absent'?'Réactiver':'Absenter'}</button> <button class="btn-del" onclick="editGarde('${r.id}')">Modifier</button> <button class="btn-del" onclick="delGarde('${r.id}')">Révoquer</button>`:''}</td>`:''}
     </tr>`;
   }).join('');
