@@ -13,5 +13,8 @@
     }
   }
 
+  window.GrimoireDiscord=Object.freeze({
+    send:sendDiscordNotification,
+  });
   window.sendDiscordNotification=sendDiscordNotification;
 })();

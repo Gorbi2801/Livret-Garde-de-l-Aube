@@ -403,8 +403,9 @@ async function saveAgendaEvent(){
         .single();
       if(error)throw error;
       savedId=data?.id||null;
-      if(savedId&&typeof window.sendDiscordNotification==='function'){
-        await window.sendDiscordNotification('agenda_created',{eventId:savedId});
+      const sendDiscord = window.GrimoireDiscord?.send || window.sendDiscordNotification;
+      if(savedId&&typeof sendDiscord==='function'){
+        await sendDiscord('agenda_created',{eventId:savedId});
       }
     }
     agendaState.selectedId=savedId;

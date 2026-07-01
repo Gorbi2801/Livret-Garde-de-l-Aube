@@ -746,8 +746,9 @@ function buildNewFicheFormHTML(){
 
 // ── Notification Discord ─────────────────────────────────────────────
 async function notifyDiscordRenseignement(type, detail){
-  if(typeof window.sendDiscordNotification!=='function')return;
-  await window.sendDiscordNotification(type==='fiche'?'renseignement_fiche':'renseignement_rapport',{detail});
+  const send = window.GrimoireDiscord?.send || window.sendDiscordNotification;
+  if(typeof send!=='function')return;
+  await send(type==='fiche'?'renseignement_fiche':'renseignement_rapport',{detail});
 }
 
 // ── CRUD Fiches ──────────────────────────────────────────────────────

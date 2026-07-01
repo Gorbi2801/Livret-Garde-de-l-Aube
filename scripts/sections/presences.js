@@ -180,9 +180,10 @@ function renderPresenceHistory(){
 
 
 // ── Notification Discord ─────────────────────────────────────────────
-async function notifyDiscord(type) {
-  if(typeof window.sendDiscordNotification!=='function')return;
-  await window.sendDiscordNotification(type==='start'?'presence_start':'presence_stop');
+async function notifyPresenceDiscord(type) {
+  const send = window.GrimoireDiscord?.send || window.sendDiscordNotification;
+  if(typeof send!=='function')return;
+  await send(type==='start'?'presence_start':'presence_stop');
 }
 
 async function startPresence(){
@@ -195,7 +196,7 @@ async function startPresence(){
     if(error)throw error;
     await loadPresences();
     if(typeof loadGardes==='function')await loadGardes();
-    await notifyDiscord('start');
+    await notifyPresenceDiscord('start');
     toast('Présence enregistrée.');
   }catch(error){
     console.error(error);
@@ -215,7 +216,7 @@ async function stopPresence(){
     if(error)throw error;
     await loadPresences();
     if(typeof loadGardes==='function')await loadGardes();
-    await notifyDiscord('stop');
+    await notifyPresenceDiscord('stop');
     toast('Présence clôturée.');
   }catch(error){
     console.error(error);
@@ -245,6 +246,7 @@ async function notifyDiscordForceStop(nomGarde){
     ? gardeRows.find(r => (r.prenom+' '+r.nom).trim() === nomGarde.trim())
     : null;
   const grade = gardeRow?.grade || '';
-  if(typeof window.sendDiscordNotification!=='function')return;
-  await window.sendDiscordNotification('presence_force_stop',{targetName:nomGarde,targetGrade:grade});
+  const send = window.GrimoireDiscord?.send || window.sendDiscordNotification;
+  if(typeof send!=='function')return;
+  await send('presence_force_stop',{targetName:nomGarde,targetGrade:grade});
 }
